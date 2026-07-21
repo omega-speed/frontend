@@ -2,12 +2,30 @@
 
 ## Identity
 - **Font**: Nunito — warm, humanist, highly legible. Set in `app/layout.tsx`; keep the `--font-sans` variable name.
-- **Border radius**: `0rem` everywhere — all corners are sharp, never add `rounded-*`. (Nunito's warmth + crisp geometry is intentional; do not "soften" with radius.)
 - **Base**: light **warm ivory paper** with warm ink text — neutrals are warm-tinted, never cold slate.
 - **Brand color**: a confident **cobalt blue**. It lives in **one** token — `--brand` in `globals.css` (with `--brand-foreground`, the ink on top of it). Change `--brand` to rebrand the whole app (e.g. to pink) in one line; it feeds `--primary`, `--ring`, `--gold`, `--social`, and the sidebar primary.
 - **Radius**: rounded, set once via `--radius` in `globals.css` (feeds the whole `rounded-*` scale). Don't hard-code radii on elements — change the token.
 - **Composition**: a floating rounded card with depth. Showcase surfaces (auth) pair a solid **brand-color panel** (real copy + domain chips + a faint dot texture) with the form — designed and branded, never Lorem filler or a bare centered form.
 - **Restraint (avoid the "vibe-coded" look)**: no decorative icons or emoji (the password-reveal eye is the one justified, universal exception); no gradients or glows; lean on type hierarchy and space.
+
+## Form & Label Conventions
+
+Applies to every form field, kicker, and control across the app — keep it uniform.
+
+- **No letter-spacing on kickers or labels.** Do not add `tracking-*` to the small
+  uppercase eyebrow (`text-[11px] font-black uppercase text-primary`) or to field
+  labels. Type carries the hierarchy; spread-out caps read as "template."
+- **Field labels are quiet.** `text-[11px] uppercase text-muted-foreground` — no
+  `font-black` on the label constant; the app-wide body weight already carries it.
+  Keep the label→input gap tight (`FormItem` is `gap-1`).
+- **Placeholders are faint** — `placeholder:text-muted-foreground/40` (and
+  `data-placeholder:text-muted-foreground/40` for selects). Baked into the base
+  `Input` / `Textarea` / `Select` components; don't override per-field.
+- **Required fields show a red `*`**; optional fields show `(optional)`. Handled by
+  `ControlledInput` — pass `optional` only when a field truly is.
+- **Tight vertical rhythm.** Prefer small gaps between stacked fields (`gap-2` to
+  `gap-4`), not `gap-5+`. One kicker + headline, an optional one-line subtitle, then
+  the form.
 
 ## Semantic Color Tokens
 Defined in `globals.css` (`:root` + `.dark`) and registered in `@theme inline`.

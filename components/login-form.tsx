@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import ControlledInput from "@/components/molecules/controlled-input";
 
-const LABEL_CLS = "text-[11px] uppercase  font-black text-muted-foreground";
+const LABEL_CLS = "text-[11px] uppercase text-muted-foreground";
 const INPUT_CLS = "h-10 text-[14px] auth-input";
 
 export function SignInForm() {
@@ -13,13 +13,12 @@ export function SignInForm() {
 
   return (
     <div className="w-full max-w-[380px] mx-auto">
-      <p className="text-[11px] font-black uppercase  text-primary">Sign In</p>
+      <p className="text-[11px] font-black uppercase text-primary">Sign In</p>
       <h1 className="mt-2 text-[28px] font-black leading-[1.1] tracking-[-0.02em] text-foreground">
         Let&apos;s get you back in.
       </h1>
-      <p className="mt-1.5 text-[12.5px] font-black text-muted-foreground"></p>
       <Form {...form}>
-        <div className="flex flex-col gap-2">
+        <div className="mt-8 flex flex-col gap-2">
           <ControlledInput
             name="email"
             label="Email"
