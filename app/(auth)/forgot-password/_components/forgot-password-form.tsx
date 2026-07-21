@@ -5,8 +5,7 @@ import { Form } from "@/components/ui/form";
 import ControlledInput from "@/components/molecules/controlled-input";
 import { useForgotPassword } from "../_hooks/use-forgot-password";
 
-const LABEL_CLS =
-  "text-[11px] uppercase tracking-[0.14em] font-black text-muted-foreground";
+const LABEL_CLS = "text-[11px] uppercase text-muted-foreground";
 const INPUT_CLS = "h-10 text-[14px] auth-input";
 
 export function ForgotPasswordForm() {

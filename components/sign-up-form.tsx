@@ -15,8 +15,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import ControlledInput from "@/components/molecules/controlled-input";
 
-const LABEL_CLS =
-  "text-[11px] uppercase tracking-[0.14em] font-black text-muted-foreground";
+const LABEL_CLS = "text-[11px] uppercase text-muted-foreground";
 const INPUT_CLS = "h-10 text-[14px] auth-input";
 
 type AvailabilityStatus = "idle" | "checking" | "available" | "taken";
