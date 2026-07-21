@@ -1,20 +1,10 @@
 "use client";
 
-import {
-  ArrowRight,
-  AtSign,
-  Check,
-  Loader2,
-  Lock,
-  Mail,
-  User,
-  X,
-} from "lucide-react";
+import { Check, Loader2, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useSignUp } from "@/app/(auth)/sign-up/_hooks/use-sign-up";
 import { checkUsernameAvailability } from "@/app/(auth)/sign-up/service";
 import { Button } from "@/components/ui/button";
-import { CornerAccents } from "@/components/ui/corner-accents";
 import {
   Form,
   FormControl,
@@ -26,9 +16,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import ControlledInput from "@/components/molecules/controlled-input";
 
 const LABEL_CLS =
-  "text-[11px] uppercase tracking-[0.14em] font-semibold text-muted-foreground";
-const INPUT_CLS =
-  "h-[52px] text-[15px] tracking-[0.02em] auth-input transition-all duration-200";
+  "text-[11px] uppercase tracking-[0.14em] font-black text-muted-foreground";
+const INPUT_CLS = "h-10 text-[14px] auth-input";
 
 type AvailabilityStatus = "idle" | "checking" | "available" | "taken";
 
@@ -80,141 +69,120 @@ export function SignUpForm() {
   }, [form]);
 
   return (
-    <div className="relative w-full max-w-120 px-1 py-2">
-      <CornerAccents />
+    <div className="w-full max-w-[400px] mx-auto">
+      <p className="text-[11px] font-black uppercase tracking-[0.22em] text-primary">
+        Create account
+      </p>
+      <h1 className="mt-2 text-[28px] font-black leading-[1.1] tracking-[-0.02em] text-foreground">
+        Start your journey.
+      </h1>
+      <p className="mt-1.5 text-[12.5px] font-black text-muted-foreground">
+        A few details and you&apos;re in.
+      </p>
 
-      <div className="px-9 pt-2.5 pb-1">
-        <h2
-          className="m-0 text-[26px] font-black text-foreground"
-          style={{ letterSpacing: "0.02em" }}
-        >
-          Create account
-        </h2>
-        <p
-          className="mt-2.5 mb-7.5 text-[13px] text-muted-foreground"
-          style={{ letterSpacing: "0.03em" }}
-        >
-          Create your account to get started.
-        </p>
-
-        <Form {...form}>
-          <div className="flex flex-col gap-4.5">
-            <div className="grid grid-cols-2 gap-3.5">
-              <ControlledInput
-                name="name"
-                label="Display name"
-                placeholder="John Doe"
-                icon={<User className="size-4.5" />}
-                labelClassName={LABEL_CLS}
-                inputClassName={INPUT_CLS}
-              />
-              <ControlledInput
-                name="username"
-                label="Username"
-                placeholder="john_doe"
-                icon={<AtSign className="size-4.5" />}
-                rightAddon={<UsernameAddon status={usernameStatus} />}
-                labelClassName={LABEL_CLS}
-                inputClassName={INPUT_CLS}
-              />
-            </div>
-
+      <Form {...form}>
+        <div className="mt-8 flex flex-col gap-5">
+          <div className="grid grid-cols-2 gap-3.5">
             <ControlledInput
-              name="email"
-              label="Email"
-              type="email"
-              placeholder="you@example.com"
-              icon={<Mail className="size-4.5" />}
+              name="name"
+              label="Display name"
+              placeholder="John Doe"
               labelClassName={LABEL_CLS}
               inputClassName={INPUT_CLS}
             />
-
             <ControlledInput
-              name="password"
-              label="Password"
-              type="password"
-              placeholder="••••••••"
-              showEyeIcon
-              icon={<Lock className="size-4.5" />}
+              name="username"
+              label="Username"
+              placeholder="john_doe"
+              rightAddon={<UsernameAddon status={usernameStatus} />}
               labelClassName={LABEL_CLS}
               inputClassName={INPUT_CLS}
             />
           </div>
 
-          <FormField
-            name="isTermsAgreed"
-            render={({ field }) => (
-              <FormItem className="mt-5">
-                <div className="flex items-start gap-2.5">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                      className="mt-0.5 shrink-0"
-                    />
-                  </FormControl>
-                  <span className="text-[11px] text-muted-foreground leading-relaxed">
-                    I agree to the{" "}
-                    <a
-                      href="/terms-of-service"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary font-semibold hover:opacity-80 transition-opacity"
-                    >
-                      Terms of Service
-                    </a>
-                    ,{" "}
-                    <a
-                      href="/privacy-policy"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary font-semibold hover:opacity-80 transition-opacity"
-                    >
-                      Privacy Policy
-                    </a>
-                    , and{" "}
-                    <a
-                      href="/cookie-policy"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary font-semibold hover:opacity-80 transition-opacity"
-                    >
-                      Cookie Policy
-                    </a>
-                    .
-                  </span>
-                </div>
-                <FormMessage />
-              </FormItem>
-            )}
+          <ControlledInput
+            name="email"
+            label="Email"
+            type="email"
+            placeholder="you@example.com"
+            labelClassName={LABEL_CLS}
+            inputClassName={INPUT_CLS}
           />
 
-          <div className="mt-6.5">
-            <Button
-              className="cta-btn w-full h-13.5 text-[14px] font-bold tracking-[0.18em] uppercase hover:-translate-y-0.5 transition-all duration-200"
-              style={{ boxShadow: "0 4px 16px oklch(0 0 0 / 0.35)" }}
-              loading={isSubmitting}
-              onClick={() => onSubmit()}
-            >
-              Create account
-              <ArrowRight className="size-4 ml-1 transition-transform duration-200 group-hover/button:translate-x-0.75" />
-            </Button>
-          </div>
-        </Form>
+          <ControlledInput
+            name="password"
+            label="Password"
+            type="password"
+            placeholder="Create a password"
+            showEyeIcon
+            labelClassName={LABEL_CLS}
+            inputClassName={INPUT_CLS}
+          />
+        </div>
 
-        <p
-          className="mt-6 text-center text-[12px] text-muted-foreground"
-          style={{ letterSpacing: "0.03em" }}
+        <FormField
+          name="isTermsAgreed"
+          render={({ field }) => (
+            <FormItem className="mt-5">
+              <div className="flex items-start gap-2.5">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    className="mt-0.5 shrink-0"
+                  />
+                </FormControl>
+                <span className="text-[11px] font-black text-muted-foreground leading-relaxed">
+                  I agree to the{" "}
+                  <a
+                    href="/terms-of-service"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary font-black hover:opacity-80"
+                  >
+                    Terms of Service
+                  </a>
+                  ,{" "}
+                  <a
+                    href="/privacy-policy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary font-black hover:opacity-80"
+                  >
+                    Privacy Policy
+                  </a>
+                  , and{" "}
+                  <a
+                    href="/cookie-policy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary font-black hover:opacity-80"
+                  >
+                    Cookie Policy
+                  </a>
+                  .
+                </span>
+              </div>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <Button
+          className="mt-7 w-full text-[13px] font-black uppercase capitalize"
+          loading={isSubmitting}
+          onClick={() => onSubmit()}
         >
-          Already have an account?{" "}
-          <a
-            href="/sign-in"
-            className="text-primary font-semibold hover:opacity-80 transition-opacity duration-200"
-          >
-            Sign in
-          </a>
-        </p>
-      </div>
+          Create account
+        </Button>
+      </Form>
+
+      <p className="mt-7 text-[12.5px] font-black text-muted-foreground">
+        Already have an account?{" "}
+        <a href="/sign-in" className="font-black text-primary hover:opacity-80">
+          Sign in
+        </a>
+      </p>
     </div>
   );
 }

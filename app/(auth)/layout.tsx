@@ -1,15 +1,15 @@
 import type { ReactNode } from "react";
-import { LegalFooter } from "@/components/molecules/legal-footer";
+import { BrandPanel } from "./_components/brand-panel";
 
-// Wraps every auth screen with a pinned legal footer bar — solid background so the
-// links stay legible over the form grid and visual panel.
+// Shared shell for every auth screen: the cobalt brand side on the left, the
+// active form centered on the right. Individual pages render only their form.
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
-    <>
-      {children}
-      {/* <div className="fixed inset-x-0 bottom-0 z-30 flex justify-center border-t border-border bg-background px-4 py-2.5">
-        <LegalFooter />
-      </div> */}
-    </>
+    <main className="flex min-h-svh w-full bg-background">
+      <BrandPanel />
+      <div className="flex flex-1 items-center justify-center p-6 sm:p-10">
+        {children}
+      </div>
+    </main>
   );
 }
