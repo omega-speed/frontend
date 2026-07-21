@@ -6,11 +6,11 @@ import { SignInPayload } from "./types";
 
 export async function SignIn(payload: SignInPayload) {
   try {
-    const response = await api.post("auth/signin", payload);
-    if (response.success && response.data?.access_token) {
+    const response = await api.post("auth/login", payload);
+    if (response.success && response.data?.accessToken) {
       await setAuthTokens({
-        access_token: response.data.access_token,
-        refresh_token: response.data.refresh_token,
+        accessToken: response.data.accessToken,
+        refreshToken: response.data.refreshToken,
       });
     }
     return response;

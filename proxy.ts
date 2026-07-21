@@ -146,17 +146,17 @@ async function tryRefreshToken(
     const response = await fetch(`${process.env.BASE_URL}/auth/refresh`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ refresh_token: refreshToken }),
+      body: JSON.stringify({ refreshToken }),
     });
 
     if (!response.ok) return null;
 
     const data = await response.json();
-    if (!data?.data?.access_token) return null;
+    if (!data?.data?.accessToken) return null;
 
     return {
-      access_token: data.data.access_token,
-      refresh_token: data.data.refresh_token,
+      access_token: data.data.accessToken,
+      refresh_token: data.data.refreshToken,
     };
   } catch {
     return null;

@@ -7,8 +7,8 @@ import { forgotPassword } from "../service";
 export async function verifyResetOtp(email: string, otp: string) {
   try {
     const response = await api.post("auth/verify-reset-otp", { email, otp });
-    if (response?.success && response?.data?.reset_token) {
-      await setAuthTokens({ access_token: response.data.reset_token });
+    if (response?.success && response?.data?.resetToken) {
+      await setAuthTokens({ accessToken: response.data.resetToken });
     }
     return response;
   } catch (err) {
