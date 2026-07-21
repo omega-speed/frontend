@@ -13,8 +13,11 @@ export function SignInForm() {
 
   return (
     <div className="w-full max-w-[380px] mx-auto">
-      <p className="text-[11px] font-black uppercase text-primary">Sign in</p>
-
+      <p className="text-[11px] font-black uppercase  text-primary">Sign In</p>
+      <h1 className="mt-2 text-[28px] font-black leading-[1.1] tracking-[-0.02em] text-foreground">
+        Let&apos;s get you back in.
+      </h1>
+      <p className="mt-1.5 text-[12.5px] font-black text-muted-foreground"></p>
       <Form {...form}>
         <div className="flex flex-col gap-2">
           <ControlledInput

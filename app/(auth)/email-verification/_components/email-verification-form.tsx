@@ -12,7 +12,7 @@ export function EmailVerificationForm() {
 
   return (
     <div className="w-full max-w-[380px] mx-auto">
-      <p className="text-[11px] font-black uppercase tracking-[0.22em] text-primary">
+      <p className="text-[11px] font-black uppercase  text-primary">
         Verify your email
       </p>
       <h1 className="mt-2 text-[28px] font-black leading-[1.1] tracking-[-0.02em] text-foreground">

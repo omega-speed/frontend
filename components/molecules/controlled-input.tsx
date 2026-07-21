@@ -22,7 +22,7 @@ export default function ControlledInput({
   placeholder,
   description,
   defaultValue,
-  optional,
+  optional = false,
   disabled = false,
   type = "text",
   showEyeIcon,
@@ -82,12 +82,14 @@ export default function ControlledInput({
             {(label || rightLink) && (
               <div className="flex items-baseline justify-between">
                 {label && (
-                  <FormLabel className={cn("text-sm font-medium", labelClassName)}>
+                  <FormLabel
+                    className={cn("text-sm font-bolder ", labelClassName)}
+                  >
                     {label}{" "}
                     {optional ? (
                       <span className="text-xs">(optional)</span>
                     ) : (
-                      <span className="text-red-500 hidden">*</span>
+                      <span className="text-red-500">*</span>
                     )}
                   </FormLabel>
                 )}

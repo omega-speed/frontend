@@ -69,7 +69,7 @@ export function SignUpForm() {
 
   return (
     <div className="w-full max-w-[400px] mx-auto">
-      <p className="text-[11px] font-black uppercase tracking-[0.22em] text-primary">
+      <p className="text-[11px] font-black uppercase  text-primary">
         Create account
       </p>
       <h1 className="mt-2 text-[28px] font-black leading-[1.1] tracking-[-0.02em] text-foreground">
@@ -80,7 +80,7 @@ export function SignUpForm() {
       </p>
 
       <Form {...form}>
-        <div className="mt-8 flex flex-col gap-5">
+        <div className="mt-8 flex flex-col gap-4">
           <div className="grid grid-cols-2 gap-3.5">
             <ControlledInput
               name="name"
