@@ -1,9 +1,6 @@
 "use client";
 
-import { Check, Loader2, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
 import { useSignUp } from "@/app/(auth)/sign-up/_hooks/use-sign-up";
-import { checkUsernameAvailability } from "@/app/(auth)/sign-up/service";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -18,54 +15,8 @@ import ControlledInput from "@/components/molecules/controlled-input";
 const LABEL_CLS = "text-[11px] uppercase text-muted-foreground";
 const INPUT_CLS = "h-10 text-[14px] auth-input";
 
-type AvailabilityStatus = "idle" | "checking" | "available" | "taken";
-
-const USERNAME_REGEX = /^[a-zA-Z0-9_]+$/;
-
-function UsernameAddon({ status }: { status: AvailabilityStatus }) {
-  if (status === "checking")
-    return <Loader2 className="size-4 animate-spin text-muted-foreground" />;
-  if (status === "available") return <Check className="size-4 text-win" />;
-  if (status === "taken") return <X className="size-4 text-loss" />;
-  return null;
-}
-
 export function SignUpForm() {
   const { form, isSubmitting, onSubmit } = useSignUp();
-  const [usernameStatus, setUsernameStatus] =
-    useState<AvailabilityStatus>("idle");
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Debounced availability check, driven by the form's watch subscription
-  // (a genuine external-subscription effect — no synchronous setState).
-  useEffect(() => {
-    const subscription = form.watch((values, { name }) => {
-      if (name !== "username") return;
-      const username = values.username ?? "";
-
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-
-      if (!username || username.length < 3 || !USERNAME_REGEX.test(username)) {
-        setUsernameStatus("idle");
-        return;
-      }
-
-      setUsernameStatus("checking");
-      debounceRef.current = setTimeout(async () => {
-        const available = await checkUsernameAvailability(username);
-        if (available === null) {
-          setUsernameStatus("idle");
-        } else {
-          setUsernameStatus(available ? "available" : "taken");
-        }
-      }, 500);
-    });
-
-    return () => {
-      subscription.unsubscribe();
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-    };
-  }, [form]);
 
   return (
     <div className="w-full max-w-[400px] mx-auto">
@@ -81,23 +32,13 @@ export function SignUpForm() {
 
       <Form {...form}>
         <div className="mt-8 flex flex-col gap-4">
-          <div className="grid grid-cols-2 gap-3.5">
-            <ControlledInput
-              name="name"
-              label="Display name"
-              placeholder="John Doe"
-              labelClassName={LABEL_CLS}
-              inputClassName={INPUT_CLS}
-            />
-            <ControlledInput
-              name="username"
-              label="Username"
-              placeholder="john_doe"
-              rightAddon={<UsernameAddon status={usernameStatus} />}
-              labelClassName={LABEL_CLS}
-              inputClassName={INPUT_CLS}
-            />
-          </div>
+          <ControlledInput
+            name="name"
+            label="Display name"
+            placeholder="John Doe"
+            labelClassName={LABEL_CLS}
+            inputClassName={INPUT_CLS}
+          />
 
           <ControlledInput
             name="email"
