@@ -1,28 +1,64 @@
 import { SignInForm } from "@/components/login-form";
-import { VisualPanel } from "../_components/visual-panel";
 
-export default function LoginPage() {
+const DOMAINS = [
+  "Funding",
+  "Match",
+  "Admissions",
+  "Essays",
+  "Global",
+  "Career",
+];
+
+// A floating two-panel card: a cobalt brand side (real message + domain chips)
+// beside the form. Rounded, with depth — deliberately not a bare centered form.
+export default function SignInPage() {
   return (
-    <div className="min-h-svh grid md:grid-cols-[1.05fr_0.95fr] bg-background overflow-hidden">
-      <VisualPanel />
+    <main className="min-h-svh bg-background flex items-center justify-center p-4 md:p-8">
+      <div className="grid w-full max-w-5xl overflow-hidden rounded-[1.4rem] border border-border bg-card shadow-[0_28px_70px_-28px_oklch(0.42_0.16_258_/_0.35)] md:grid-cols-2">
+        {/* Brand panel */}
+        <aside className="relative hidden flex-col justify-between bg-primary p-10 text-primary-foreground md:flex">
+          <div
+            className="pointer-events-none absolute inset-0 opacity-[0.13]"
+            style={{
+              backgroundImage:
+                "radial-gradient(circle at 1px 1px, white 1px, transparent 0)",
+              backgroundSize: "22px 22px",
+            }}
+          />
+          <span className="relative text-sm font-extrabold uppercase tracking-[0.28em]">
+            Qoollege
+          </span>
 
-      {/* Form panel */}
-      <div
-        className="relative flex items-center justify-center md:border-l-2 md:border-border"
-        style={{ background: "var(--bg-deep)" }}
-      >
-        {/* Blueprint grid overlay */}
-        <div
-          className="absolute inset-0 pointer-events-none opacity-25"
-          style={{
-            backgroundImage:
-              "linear-gradient(oklch(1 0 0 / 0.04) 1px, transparent 1px), linear-gradient(90deg, oklch(1 0 0 / 0.04) 1px, transparent 1px)",
-            backgroundSize: "40px 40px",
-          }}
-        />
+          <div className="relative">
+            <h2 className="text-[32px] font-extrabold leading-[1.1] tracking-[-0.02em]">
+              From uncertainty to a clear plan.
+            </h2>
+            <p className="mt-4 max-w-sm text-[14px] leading-relaxed text-primary-foreground/80">
+              Guidance intelligence for funding, matching, admissions and
+              essays — one relationship, every step of the journey.
+            </p>
+            <div className="mt-7 flex flex-wrap gap-2">
+              {DOMAINS.map((d) => (
+                <span
+                  key={d}
+                  className="rounded-full border border-white/25 bg-white/10 px-3 py-1 text-[12px] font-semibold"
+                >
+                  {d}
+                </span>
+              ))}
+            </div>
+          </div>
 
-        <SignInForm />
+          <span className="relative text-[12px] text-primary-foreground/70">
+            Built around the learner.
+          </span>
+        </aside>
+
+        {/* Form panel */}
+        <div className="flex items-center p-8 sm:p-10 md:p-12">
+          <SignInForm />
+        </div>
       </div>
-    </div>
+    </main>
   );
 }

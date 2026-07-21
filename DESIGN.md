@@ -1,9 +1,13 @@
 # Design System
 
 ## Identity
-- **Font**: Geist (neutral default) — swap in `app/layout.tsx`; keep the `--font-sans` variable name
-- **Border radius**: `0rem` everywhere — all corners are sharp, never add `rounded-*`
-- **Primary color**: neutral near-white on dark — swap the `--primary` (and `--sidebar-primary`) tokens in `globals.css` for your brand color
+- **Font**: Nunito — warm, humanist, highly legible. Set in `app/layout.tsx`; keep the `--font-sans` variable name.
+- **Border radius**: `0rem` everywhere — all corners are sharp, never add `rounded-*`. (Nunito's warmth + crisp geometry is intentional; do not "soften" with radius.)
+- **Base**: light **warm ivory paper** with warm ink text — neutrals are warm-tinted, never cold slate.
+- **Brand color**: a confident **cobalt blue**. It lives in **one** token — `--brand` in `globals.css` (with `--brand-foreground`, the ink on top of it). Change `--brand` to rebrand the whole app (e.g. to pink) in one line; it feeds `--primary`, `--ring`, `--gold`, `--social`, and the sidebar primary.
+- **Radius**: rounded, set once via `--radius` in `globals.css` (feeds the whole `rounded-*` scale). Don't hard-code radii on elements — change the token.
+- **Composition**: a floating rounded card with depth. Showcase surfaces (auth) pair a solid **brand-color panel** (real copy + domain chips + a faint dot texture) with the form — designed and branded, never Lorem filler or a bare centered form.
+- **Restraint (avoid the "vibe-coded" look)**: no decorative icons or emoji (the password-reveal eye is the one justified, universal exception); no gradients or glows; lean on type hierarchy and space.
 
 ## Semantic Color Tokens
 Defined in `globals.css` (`:root` + `.dark`) and registered in `@theme inline`.
