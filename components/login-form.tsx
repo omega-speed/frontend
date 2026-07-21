@@ -47,7 +47,7 @@ export function SignInForm() {
         </div>
 
         <Button
-          className="mt-7 h-11 w-full text-[13px] font-bold uppercase tracking-[0.14em]"
+          className="mt-7  w-full text-[13px] font-black uppercase text-xs capitalize"
           loading={isSubmitting}
           onClick={() => onSubmit()}
         >
