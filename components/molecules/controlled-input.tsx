@@ -78,7 +78,7 @@ export default function ControlledInput({
         }, [fieldState.error?.message]);
 
         return (
-          <FormItem className="space-y-1.5">
+          <FormItem className="gap-1">
             {(label || rightLink) && (
               <div className="flex items-baseline justify-between">
                 {label && (

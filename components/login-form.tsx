@@ -6,7 +6,7 @@ import { Form } from "@/components/ui/form";
 import ControlledInput from "@/components/molecules/controlled-input";
 
 const LABEL_CLS =
-  "text-[11px] uppercase tracking-[0.14em] font-bold text-muted-foreground";
+  "text-[11px] uppercase tracking-[0.14em] font-black text-muted-foreground";
 const INPUT_CLS = "h-10 text-[14px] auth-input";
 
 export function SignInForm() {
@@ -14,13 +14,13 @@ export function SignInForm() {
 
   return (
     <div className="w-full max-w-[380px] mx-auto">
-      <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-primary">
+      <p className="text-[11px] font-black uppercase tracking-[0.22em] text-primary">
         Sign in
       </p>
-      <h1 className="mt-2 text-[28px] font-extrabold leading-[1.1] tracking-[-0.02em] text-foreground">
+      <h1 className="mt-2 text-[28px] font-black leading-[1.1] tracking-[-0.02em] text-foreground">
         Welcome back.
       </h1>
-      <p className="mt-1.5 text-[12.5px] font-medium text-muted-foreground">
+      <p className="mt-1.5 text-[12.5px] font-black text-muted-foreground">
         Pick up where you left off.
       </p>
 
@@ -55,12 +55,9 @@ export function SignInForm() {
         </Button>
       </Form>
 
-      <p className="mt-7 text-[12.5px] font-medium text-muted-foreground">
+      <p className="mt-7 text-[12.5px] font-black text-muted-foreground">
         New to Qoollege?{" "}
-        <a
-          href="/sign-up"
-          className="font-semibold text-primary hover:opacity-80"
-        >
+        <a href="/sign-up" className="font-black text-primary hover:opacity-80">
           Create an account
         </a>
       </p>
