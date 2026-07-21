@@ -1,4 +1,5 @@
-// Single place to brand the app. Rename these when starting a new project.
-export const APP_NAME = "Acme";
-export const APP_DESCRIPTION = "A short description of what this app does.";
-export const COMPANY_NAME = "Acme Inc.";
+// Single place to brand the app.
+export const APP_NAME = "Qoollege";
+export const APP_DESCRIPTION =
+  "Guidance intelligence that helps every learner move from uncertainty to a clear plan.";
+export const COMPANY_NAME = "Qoollege";

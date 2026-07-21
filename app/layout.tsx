@@ -1,16 +1,17 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
+import { Nunito } from "next/font/google";
 import NextTopLoader from "nextjs-toploader";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
 import { Toaster } from "sonner";
 import { APP_NAME, APP_DESCRIPTION } from "@/lib/config";
 
-// Neutral default font — swap for your brand font here (keep the --font-sans
-// variable name so globals.css picks it up).
-const geist = Geist({
+// Brand font: Nunito — warm, humanist, highly legible. Keep the --font-sans
+// variable name so globals.css picks it up.
+const nunito = Nunito({
   variable: "--font-sans",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
 });
 
 // Absolute base for OG/Twitter image URLs. Prefers an explicit env var, then the
@@ -45,12 +46,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${geist.variable} h-full antialiased`}>
+    <html lang="en" className={`${nunito.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <NextTopLoader
-          color="oklch(0.985 0 0)"
+          color="oklch(0.8 0.128 82)"
           height={2}
-          shadow="0 0 8px oklch(1 0 0 / 0.5), 0 0 4px oklch(1 0 0 / 0.5)"
+          shadow="0 0 8px oklch(0.8 0.128 82 / 0.5)"
           showSpinner={false}
         />
         <TooltipProvider>{children}</TooltipProvider>

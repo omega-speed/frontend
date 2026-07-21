@@ -1,9 +1,11 @@
 # Design System
 
 ## Identity
-- **Font**: Geist (neutral default) — swap in `app/layout.tsx`; keep the `--font-sans` variable name
-- **Border radius**: `0rem` everywhere — all corners are sharp, never add `rounded-*`
-- **Primary color**: neutral near-white on dark — swap the `--primary` (and `--sidebar-primary`) tokens in `globals.css` for your brand color
+- **Font**: Nunito — warm, humanist, highly legible. Set in `app/layout.tsx`; keep the `--font-sans` variable name.
+- **Border radius**: `0rem` everywhere — all corners are sharp, never add `rounded-*`. (Nunito's warmth + crisp geometry is intentional; do not "soften" with radius.)
+- **Base**: warm charcoal dark — neutrals are warm-tinted, never cold gray. Foreground is a warm near-white.
+- **Brand color**: a muted **amber / ochre**. It lives in **one** token — `--brand` in `globals.css` (with `--brand-foreground`, the ink used on top of it). Change `--brand` to rebrand the whole app; it feeds `--primary`, `--ring`, `--gold`, and the sidebar primary.
+- **Restraint (avoid the "vibe-coded" look)**: no decorative icons or emoji; the amber accent is used sparingly (actions, focus, key values); no gradients or glows as decoration; lean on whitespace and type hierarchy.
 
 ## Semantic Color Tokens
 Defined in `globals.css` (`:root` + `.dark`) and registered in `@theme inline`.
