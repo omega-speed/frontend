@@ -74,15 +74,17 @@ export default function ControlledCombobox<
         );
 
         return (
-          <FormItem className="space-y-2 text-left">
+          <FormItem className="gap-1 text-left">
             {label && (
               <div className="flex items-baseline justify-between">
-                <FormLabel className="text-sm font-medium">
+                <FormLabel className="text-sm font-bolder">
                   {label}{" "}
-                  {optional && (
+                  {optional ? (
                     <span className="text-muted-foreground font-normal text-xs">
                       (optional)
                     </span>
+                  ) : (
+                    <span className="text-red-500">*</span>
                   )}
                 </FormLabel>
               </div>
@@ -96,7 +98,7 @@ export default function ControlledCombobox<
                     aria-expanded={open}
                     disabled={disabled}
                     className={cn(
-                      "w-full justify-between bg-[#252239] shadow-custom-drop h-10",
+                      "w-full justify-between h-10",
                       !field.value && "text-muted-foreground",
                       className,
                     )}

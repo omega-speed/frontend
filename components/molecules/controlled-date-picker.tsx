@@ -75,16 +75,16 @@ export default function ControlledDateTimePicker({
       render={({ field, fieldState }) => {
         const selectedDate = toValidDate(field.value);
         return (
-        <FormItem className="text-left">
+        <FormItem className="gap-1 text-left">
           {label && (
-            <FormLabel className="text-sm font-medium">
+            <FormLabel className="text-sm font-bolder">
               {label}{" "}
               {optional ? (
                 <span className="text-muted-foreground font-normal text-xs">
                   (optional)
                 </span>
               ) : (
-                <span className="text-red-500 hidden">*</span>
+                <span className="text-red-500">*</span>
               )}
             </FormLabel>
           )}

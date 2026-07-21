@@ -32,9 +32,14 @@ export default function ControlledCheckboxGroup({
     <FormField
       name={name}
       render={({ field }) => (
-        <FormItem className="space-y-3">
-          <FormLabel>
-            {label} {optional && <span className="text-xs">(optional)</span>}
+        <FormItem className="gap-1">
+          <FormLabel className="text-sm font-bolder">
+            {label}{" "}
+            {optional ? (
+              <span className="text-xs">(optional)</span>
+            ) : (
+              <span className="text-red-500">*</span>
+            )}
           </FormLabel>
           <FormControl>
             <div className={`flex flex-row flex-nowrap gap-4 ${className}`}>

@@ -93,7 +93,7 @@ export default function FileDropzone({
 
   return (
     <div className="w-full">
-      <label className="text-sm font-medium mb-2 block">{label}</label>
+      <label className="text-sm font-bolder mb-2 block">{label}</label>
       <div
         {...getRootProps()}
         className={`relative border-2 border-dashed overflow-hidden text-center cursor-pointer transition-all ${

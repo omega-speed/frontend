@@ -73,14 +73,16 @@ export default function ControlledSelect({
     <FormField
       name={name}
       render={({ field }) => (
-        <FormItem className="text-left">
+        <FormItem className="gap-1 text-left">
           {label ? (
-            <FormLabel className="text-sm font-medium">
+            <FormLabel className="text-sm font-bolder">
               {label}{" "}
-              {optional && (
+              {optional ? (
                 <span className="text-muted-foreground font-normal text-xs">
                   (optional)
                 </span>
+              ) : (
+                <span className="text-red-500">*</span>
               )}
             </FormLabel>
           ) : null}
@@ -94,7 +96,7 @@ export default function ControlledSelect({
           >
             <FormControl>
               <SelectTrigger
-                className={`shadow-custom-drop bg-[#252239] border-border ${className}`}
+                className={`border-border ${className}`}
               >
                 <SelectValue placeholder={placeholder} />
               </SelectTrigger>
