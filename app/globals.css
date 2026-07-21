@@ -163,7 +163,10 @@
   }
   body {
     @apply bg-background text-foreground;
-    line-height: 1.7;
+    /* Black (900) is the default weight app-wide; lighter weights are rare,
+       deliberate exceptions. */
+    font-weight: 900;
+    line-height: 1.6;
     letter-spacing: 0.01em;
   }
 }

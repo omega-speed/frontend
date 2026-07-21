@@ -11,7 +11,7 @@ import { APP_NAME, APP_DESCRIPTION } from "@/lib/config";
 const nunito = Nunito({
   variable: "--font-sans",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+  weight: ["400", "500", "600", "700", "800", "900"],
 });
 
 // Absolute base for OG/Twitter image URLs. Prefers an explicit env var, then the

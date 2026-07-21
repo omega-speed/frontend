@@ -25,15 +25,15 @@ export default function SignInPage() {
               backgroundSize: "22px 22px",
             }}
           />
-          <span className="relative text-sm font-extrabold uppercase tracking-[0.28em]">
+          <span className="relative text-sm font-black uppercase tracking-[0.28em]">
             Qoollege
           </span>
 
           <div className="relative">
-            <h2 className="text-[32px] font-extrabold leading-[1.1] tracking-[-0.02em]">
+            <h2 className="text-[32px] font-black leading-[1.1] tracking-[-0.02em]">
               From uncertainty to a clear plan.
             </h2>
-            <p className="mt-4 max-w-sm text-[13px] font-medium leading-relaxed text-primary-foreground/80">
+            <p className="mt-4 max-w-sm text-[13px] font-black leading-relaxed text-primary-foreground/80">
               Guidance intelligence for funding, matching, admissions and essays
               — one relationship, every step of the journey.
             </p>
@@ -41,7 +41,7 @@ export default function SignInPage() {
               {DOMAINS.map((d) => (
                 <span
                   key={d}
-                  className="rounded-full border border-white/25 bg-white/10 px-3 py-1 text-[12px] font-semibold"
+                  className="rounded-full border border-white/25 bg-white/10 px-3 py-1 text-[12px] font-black"
                 >
                   {d}
                 </span>
