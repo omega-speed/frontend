@@ -49,14 +49,14 @@ export default function RootLayout({
     <html lang="en" className={`${nunito.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <NextTopLoader
-          color="oklch(0.8 0.128 82)"
+          color="oklch(0.48 0.16 258)"
           height={2}
-          shadow="0 0 8px oklch(0.8 0.128 82 / 0.5)"
+          shadow="0 0 8px oklch(0.48 0.16 258 / 0.4)"
           showSpinner={false}
         />
         <TooltipProvider>{children}</TooltipProvider>
         <Toaster
-          theme="dark"
+          theme="light"
           toastOptions={{
             classNames: {
               toast:

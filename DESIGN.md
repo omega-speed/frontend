@@ -3,9 +3,10 @@
 ## Identity
 - **Font**: Nunito — warm, humanist, highly legible. Set in `app/layout.tsx`; keep the `--font-sans` variable name.
 - **Border radius**: `0rem` everywhere — all corners are sharp, never add `rounded-*`. (Nunito's warmth + crisp geometry is intentional; do not "soften" with radius.)
-- **Base**: warm charcoal dark — neutrals are warm-tinted, never cold gray. Foreground is a warm near-white.
-- **Brand color**: a muted **amber / ochre**. It lives in **one** token — `--brand` in `globals.css` (with `--brand-foreground`, the ink used on top of it). Change `--brand` to rebrand the whole app; it feeds `--primary`, `--ring`, `--gold`, and the sidebar primary.
-- **Restraint (avoid the "vibe-coded" look)**: no decorative icons or emoji; the amber accent is used sparingly (actions, focus, key values); no gradients or glows as decoration; lean on whitespace and type hierarchy.
+- **Base**: light **warm ivory paper** with warm ink text — neutrals are warm-tinted, never cold slate.
+- **Brand color**: a confident **cobalt blue**. It lives in **one** token — `--brand` in `globals.css` (with `--brand-foreground`, the ink on top of it). Change `--brand` to rebrand the whole app (e.g. to pink) in one line; it feeds `--primary`, `--ring`, `--gold`, `--social`, and the sidebar primary.
+- **Composition**: editorial, not SaaS — a quiet masthead + hairline rules, generous whitespace, big confident headings, a single accent used sparingly. No split-hero, no card-on-gradient.
+- **Restraint (avoid the "vibe-coded" look)**: no decorative icons or emoji (the password-reveal eye is the one justified, universal exception); no gradients or glows; lean on type hierarchy and space.
 
 ## Semantic Color Tokens
 Defined in `globals.css` (`:root` + `.dark`) and registered in `@theme inline`.

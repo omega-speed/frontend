@@ -1,28 +1,25 @@
 import { SignInForm } from "@/components/login-form";
-import { VisualPanel } from "../_components/visual-panel";
 
-export default function LoginPage() {
+// Editorial single-column composition — a quiet masthead over a centered form.
+// No split-hero, no card-on-gradient, no decorative icons.
+export default function SignInPage() {
   return (
-    <div className="min-h-svh grid md:grid-cols-[1.05fr_0.95fr] bg-background overflow-hidden">
-      <VisualPanel />
+    <main className="min-h-svh flex flex-col bg-background text-foreground">
+      <header className="px-6 md:px-10 pt-8">
+        <div className="mx-auto w-full max-w-5xl flex items-baseline justify-between">
+          <span className="text-sm font-extrabold uppercase tracking-[0.3em]">
+            Qoollege
+          </span>
+          <span className="hidden sm:block text-[11px] uppercase tracking-[0.26em] text-muted-foreground">
+            Guidance Intelligence
+          </span>
+        </div>
+        <div className="mx-auto mt-5 w-full max-w-5xl border-t border-border" />
+      </header>
 
-      {/* Form panel */}
-      <div
-        className="relative flex items-center justify-center md:border-l-2 md:border-border"
-        style={{ background: "var(--bg-deep)" }}
-      >
-        {/* Blueprint grid overlay */}
-        <div
-          className="absolute inset-0 pointer-events-none opacity-25"
-          style={{
-            backgroundImage:
-              "linear-gradient(oklch(1 0 0 / 0.04) 1px, transparent 1px), linear-gradient(90deg, oklch(1 0 0 / 0.04) 1px, transparent 1px)",
-            backgroundSize: "40px 40px",
-          }}
-        />
-
+      <div className="flex flex-1 items-center justify-center px-6 py-16">
         <SignInForm />
       </div>
-    </div>
+    </main>
   );
 }
