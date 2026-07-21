@@ -39,13 +39,13 @@ export default function ControlledTextarea({
     <FormField
       name={name}
       render={({ field }) => (
-        <FormItem>
-          <FormLabel>
+        <FormItem className="gap-1">
+          <FormLabel className="text-sm font-bolder">
             {label}{" "}
             {optional ? (
               <span className="text-xs">(optional)</span>
             ) : (
-              <span className="text-red-500"></span>
+              <span className="text-red-500">*</span>
             )}{" "}
           </FormLabel>
           <FormControl>

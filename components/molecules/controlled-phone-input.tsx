@@ -67,14 +67,16 @@ export default function ControlledPhoneInput({
   }
 
   return (
-    <div className="flex flex-col gap-2 text-left">
+    <div className="flex flex-col gap-1 text-left">
       {label && (
-        <label className={cn("text-sm font-medium", labelClassName)}>
+        <label className={cn("text-sm font-bolder", labelClassName)}>
           {label}{" "}
-          {optional && (
+          {optional ? (
             <span className="text-muted-foreground font-normal text-xs">
               (optional)
             </span>
+          ) : (
+            <span className="text-red-500">*</span>
           )}
         </label>
       )}
