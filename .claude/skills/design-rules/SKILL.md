@@ -4,11 +4,14 @@ description: Enforce component patterns, Tailwind conventions, and naming standa
 user-invocable: true
 ---
 
-## Rule #1 — No Rounded Borders. Ever.
-- **Never** use `rounded`, `rounded-*`, `border-radius`, or any CSS that curves corners
-- This applies everywhere: buttons, cards, inputs, modals, images, avatars, tags — no exceptions
-- If you see `rounded` in any Tailwind class, remove it
-- If you see `border-radius` in any CSS/style prop, remove it
+## Rule #1 — Radius Comes From the Token, Not Ad-Hoc Classes
+- The corner radius is set **once** via `--radius` in `globals.css` and flows through
+  the `rounded-*` scale registered in `@theme inline`
+- Components (`Input`, `Button`, cards) already use `rounded-lg` → they follow `--radius`
+- **Do not** hard-code arbitrary radii (`rounded-none`, `rounded-[3px]`, `border-radius: 9px`)
+  on individual elements — change `--radius` to adjust the whole app's roundness
+- Larger showcase surfaces (the auth card) may use a bigger radius via the token scale
+  (`rounded-[1.4rem]`) for hierarchy — keep it consistent and intentional
 
 ## Rule #2 — Pages and Layouts Are Always Server Components
 - `page.tsx` and `layout.tsx` files must never have `"use client"`

@@ -6,26 +6,26 @@ import { Form } from "@/components/ui/form";
 import ControlledInput from "@/components/molecules/controlled-input";
 
 const LABEL_CLS =
-  "text-[11px] uppercase tracking-[0.16em] font-bold text-muted-foreground";
-const INPUT_CLS = "h-[52px] text-[15px] auth-input";
+  "text-[11px] uppercase tracking-[0.14em] font-bold text-muted-foreground";
+const INPUT_CLS = "h-10 text-[14px] auth-input";
 
 export function SignInForm() {
   const { form, isSubmitting, onSubmit } = useSignIn();
 
   return (
-    <div className="w-full max-w-[400px]">
-      <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-primary">
+    <div className="w-full max-w-[380px] mx-auto">
+      <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-primary">
         Sign in
       </p>
-      <h1 className="mt-3 text-[40px] font-extrabold leading-[1.05] tracking-[-0.02em] text-foreground">
+      <h1 className="mt-2 text-[28px] font-extrabold leading-[1.1] tracking-[-0.02em] text-foreground">
         Welcome back.
       </h1>
-      <p className="mt-3 text-[14px] text-muted-foreground">
+      <p className="mt-2 text-[13.5px] text-muted-foreground">
         Pick up where you left off.
       </p>
 
       <Form {...form}>
-        <div className="mt-10 flex flex-col gap-6">
+        <div className="mt-8 flex flex-col gap-5">
           <ControlledInput
             name="email"
             label="Email"
@@ -47,7 +47,7 @@ export function SignInForm() {
         </div>
 
         <Button
-          className="mt-8 h-[54px] w-full text-[13px] font-bold uppercase tracking-[0.16em]"
+          className="mt-7 h-11 w-full text-[13px] font-bold uppercase tracking-[0.14em]"
           loading={isSubmitting}
           onClick={() => onSubmit()}
         >
@@ -55,7 +55,7 @@ export function SignInForm() {
         </Button>
       </Form>
 
-      <p className="mt-8 text-[13px] text-muted-foreground">
+      <p className="mt-7 text-[13px] text-muted-foreground">
         New to Qoollege?{" "}
         <a
           href="/sign-up"

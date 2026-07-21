@@ -88,7 +88,7 @@
   --chart-3: oklch(0.72 0.05 80);
   --chart-4: oklch(0.55 0.02 70);
   --chart-5: oklch(0.4 0.02 62);
-  --radius: 0rem;
+  --radius: 0.7rem;
   --sidebar: oklch(0.96 0.006 88);
   --sidebar-foreground: oklch(0.24 0.012 62);
   --sidebar-primary: var(--brand);
@@ -170,7 +170,7 @@
 
 @layer utilities {
   .border {
-    border-width: 2px;
+    border-width: 1px;
   }
 
   [data-sidebar="menu-button"][data-active="true"] {
@@ -182,12 +182,12 @@
   }
 
   [data-slot="input"] {
-    min-height: 2.75rem;
-    padding: 0.6rem 1rem;
+    min-height: 2.5rem;
+    padding: 0.45rem 0.85rem;
   }
 
   [data-slot="button"] {
-    min-height: 2.75rem;
+    min-height: 2.6rem;
     padding-left: 1.25rem;
     padding-right: 1.25rem;
   }

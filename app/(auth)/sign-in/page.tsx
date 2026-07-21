@@ -1,24 +1,63 @@
 import { SignInForm } from "@/components/login-form";
 
-// Editorial single-column composition — a quiet masthead over a centered form.
-// No split-hero, no card-on-gradient, no decorative icons.
+const DOMAINS = [
+  "Funding",
+  "Match",
+  "Admissions",
+  "Essays",
+  "Global",
+  "Career",
+];
+
+// A floating two-panel card: a cobalt brand side (real message + domain chips)
+// beside the form. Rounded, with depth — deliberately not a bare centered form.
 export default function SignInPage() {
   return (
-    <main className="min-h-svh flex flex-col bg-background text-foreground">
-      <header className="px-6 md:px-10 pt-8">
-        <div className="mx-auto w-full max-w-5xl flex items-baseline justify-between">
-          <span className="text-sm font-extrabold uppercase tracking-[0.3em]">
+    <main className="min-h-svh bg-background flex items-center justify-center p-4 md:p-8">
+      <div className="grid w-full max-w-5xl overflow-hidden rounded-[1.4rem] border border-border bg-card shadow-[0_28px_70px_-28px_oklch(0.42_0.16_258_/_0.35)] md:grid-cols-2">
+        {/* Brand panel */}
+        <aside className="relative hidden flex-col justify-between bg-primary p-10 text-primary-foreground md:flex">
+          <div
+            className="pointer-events-none absolute inset-0 opacity-[0.13]"
+            style={{
+              backgroundImage:
+                "radial-gradient(circle at 1px 1px, white 1px, transparent 0)",
+              backgroundSize: "22px 22px",
+            }}
+          />
+          <span className="relative text-sm font-extrabold uppercase tracking-[0.28em]">
             Qoollege
           </span>
-          <span className="hidden sm:block text-[11px] uppercase tracking-[0.26em] text-muted-foreground">
-            Guidance Intelligence
-          </span>
-        </div>
-        <div className="mx-auto mt-5 w-full max-w-5xl border-t border-border" />
-      </header>
 
-      <div className="flex flex-1 items-center justify-center px-6 py-16">
-        <SignInForm />
+          <div className="relative">
+            <h2 className="text-[32px] font-extrabold leading-[1.1] tracking-[-0.02em]">
+              From uncertainty to a clear plan.
+            </h2>
+            <p className="mt-4 max-w-sm text-[14px] leading-relaxed text-primary-foreground/80">
+              Guidance intelligence for funding, matching, admissions and
+              essays — one relationship, every step of the journey.
+            </p>
+            <div className="mt-7 flex flex-wrap gap-2">
+              {DOMAINS.map((d) => (
+                <span
+                  key={d}
+                  className="rounded-full border border-white/25 bg-white/10 px-3 py-1 text-[12px] font-semibold"
+                >
+                  {d}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <span className="relative text-[12px] text-primary-foreground/70">
+            Built around the learner.
+          </span>
+        </aside>
+
+        {/* Form panel */}
+        <div className="flex items-center p-8 sm:p-10 md:p-12">
+          <SignInForm />
+        </div>
       </div>
     </main>
   );
