@@ -11,8 +11,8 @@ export interface User {
 }
 
 export interface AuthTokens {
-  access_token: string;
-  refresh_token?: string;
+  accessToken: string;
+  refreshToken?: string;
 }
 
 /**
@@ -38,7 +38,7 @@ export async function setAuthTokens(tokens: AuthTokens) {
   const cookieStore = await cookies();
 
   // Set access token (expires in 1 hour)
-  cookieStore.set(ACCESS_TOKEN_COOKIE, tokens.access_token, {
+  cookieStore.set(ACCESS_TOKEN_COOKIE, tokens.accessToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
@@ -47,8 +47,8 @@ export async function setAuthTokens(tokens: AuthTokens) {
   });
 
   // Set refresh token if provided (expires in 7 days)
-  if (tokens.refresh_token) {
-    cookieStore.set(REFRESH_TOKEN_COOKIE, tokens.refresh_token, {
+  if (tokens.refreshToken) {
+    cookieStore.set(REFRESH_TOKEN_COOKIE, tokens.refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
@@ -142,20 +142,20 @@ export async function refreshAccessToken(): Promise<string | null> {
     const response = await fetch(`${process.env.BASE_URL}/auth/refresh`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ refresh_token: refreshToken }),
+      body: JSON.stringify({ refreshToken }),
     });
 
     if (!response.ok) return null;
 
     const data = await response.json();
-    if (!data?.data?.access_token) return null;
+    if (!data?.data?.accessToken) return null;
 
     await setAuthTokens({
-      access_token: data.data.access_token,
-      refresh_token: data.data.refresh_token ?? refreshToken,
+      accessToken: data.data.accessToken,
+      refreshToken: data.data.refreshToken ?? refreshToken,
     });
 
-    return data.data.access_token;
+    return data.data.accessToken;
   } catch {
     return null;
   }
