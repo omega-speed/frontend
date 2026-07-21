@@ -20,7 +20,7 @@ export function SignInForm() {
       <h1 className="mt-2 text-[28px] font-extrabold leading-[1.1] tracking-[-0.02em] text-foreground">
         Welcome back.
       </h1>
-      <p className="mt-2 text-[13.5px] text-muted-foreground">
+      <p className="mt-1.5 text-[12.5px] font-medium text-muted-foreground">
         Pick up where you left off.
       </p>
 
@@ -55,7 +55,7 @@ export function SignInForm() {
         </Button>
       </Form>
 
-      <p className="mt-7 text-[13px] text-muted-foreground">
+      <p className="mt-7 text-[12.5px] font-medium text-muted-foreground">
         New to Qoollege?{" "}
         <a
           href="/sign-up"

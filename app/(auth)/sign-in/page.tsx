@@ -33,7 +33,7 @@ export default function SignInPage() {
             <h2 className="text-[32px] font-extrabold leading-[1.1] tracking-[-0.02em]">
               From uncertainty to a clear plan.
             </h2>
-            <p className="mt-4 max-w-sm text-[14px] leading-relaxed text-primary-foreground/80">
+            <p className="mt-4 max-w-sm text-[13px] font-medium leading-relaxed text-primary-foreground/80">
               Guidance intelligence for funding, matching, admissions and essays
               — one relationship, every step of the journey.
             </p>
