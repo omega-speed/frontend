@@ -22,7 +22,10 @@ import { APP_NAME } from "@/lib/config";
 const navMain = [
   {
     title: "Platform",
-    items: [{ title: "Home", url: "/home" }],
+    items: [
+      { title: "Home", url: "/home" },
+      { title: "Profile", url: "/profile" },
+    ],
   },
 ];
 
