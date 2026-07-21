@@ -23,13 +23,7 @@ export function useSignIn() {
       const response = await SignIn(data);
 
       if (!response.success) {
-        if (response.status_code === 403) {
-          // A 403 means an unverified account. The backend has already re-sent
-          // the verification code; route to the verification step.
-          push(`/email-verification?email=${encodeURIComponent(data.email)}`);
-        }
-
-        toast.info(response.message);
+        toast.error(response.message ?? "Invalid email or password");
         return;
       }
       toast.success(response.message);

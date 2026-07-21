@@ -1,14 +1,9 @@
 import { z } from "zod";
 
+// Mirrors the backend register contract: POST /auth/register { email, password, name }.
+// isTermsAgreed is a client-side gate only and is not sent to the backend.
 export const signUpPayload = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
-  username: z
-    .string()
-    .min(3, "Username must be at least 3 characters")
-    .regex(
-      /^[a-zA-Z0-9_]+$/,
-      "Only letters, numbers, and underscores allowed",
-    ),
   email: z.string().min(1, "Email is required").email("Invalid email"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   isTermsAgreed: z.boolean().refine((v) => v === true, {

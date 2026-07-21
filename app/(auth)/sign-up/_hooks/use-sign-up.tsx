@@ -12,7 +12,6 @@ export function useSignUp() {
     resolver: zodResolver(signUpPayload),
     defaultValues: {
       name: "",
-      username: "",
       email: "",
       password: "",
       isTermsAgreed: false,
@@ -33,8 +32,10 @@ export function useSignUp() {
         return;
       }
 
-      toast.success(response.message ?? "Account created — check your email");
-      push(`/email-verification?email=${encodeURIComponent(data.email)}`);
+      // Backend logs the account in on registration (tokens already stored),
+      // so go straight into the app.
+      toast.success(response.message ?? "Account created");
+      push("/home");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "An error occurred");
     }
