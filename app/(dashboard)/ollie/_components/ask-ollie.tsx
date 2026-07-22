@@ -3,19 +3,20 @@
 import { useRef, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { askOllie } from "../service";
-import type { OllieAnswer } from "../types";
+import { askOllie, confirmDeclare } from "../service";
+import type { Declaration, OllieAnswer } from "../types";
 import { OllieAnswerCard } from "./ollie-answer";
 
 type Turn =
   | { role: "user"; text: string }
-  | { role: "ollie"; answer: OllieAnswer }
+  | { role: "ollie"; answer: OllieAnswer; resolved?: boolean }
+  | { role: "note"; text: string }
   | { role: "error"; text: string };
 
 const SUGGESTIONS = [
   "Where should I apply?",
-  "What can I afford?",
-  "What are my chances?",
+  "What scholarships can help?",
+  "My GPA is 3.9",
   "What do you know about me?",
 ];
 
@@ -38,6 +39,31 @@ export function AskOllie() {
       ]);
       requestAnimationFrame(() => endRef.current?.scrollIntoView({ behavior: "smooth" }));
     });
+  }
+
+  // Mark the proposing turn resolved so its buttons disappear, whatever the choice.
+  function resolveAt(index: number) {
+    setTurns((t) =>
+      t.map((turn, i) => (i === index && turn.role === "ollie" ? { ...turn, resolved: true } : turn)),
+    );
+  }
+
+  function save(index: number, proposals: Declaration[]) {
+    if (pending) return;
+    resolveAt(index);
+    startTransition(async () => {
+      const res = await confirmDeclare(proposals);
+      setTurns((t) => [
+        ...t,
+        res.ok ? { role: "ollie", answer: res.answer } : { role: "error", text: res.message },
+      ]);
+      requestAnimationFrame(() => endRef.current?.scrollIntoView({ behavior: "smooth" }));
+    });
+  }
+
+  function cancel(index: number) {
+    resolveAt(index);
+    setTurns((t) => [...t, { role: "note", text: "No problem — I didn't change anything." }]);
   }
 
   return (
@@ -65,7 +91,21 @@ export function AskOllie() {
                 </div>
               </div>
             ) : turn.role === "ollie" ? (
-              <OllieAnswerCard key={i} answer={turn.answer} />
+              <div key={i} className="space-y-2">
+                <OllieAnswerCard answer={turn.answer} />
+                {turn.answer.proposals && turn.answer.proposals.length > 0 && !turn.resolved && (
+                  <div className="flex gap-2">
+                    <Button onClick={() => save(i, turn.answer.proposals!)} disabled={pending}>
+                      Save to my profile
+                    </Button>
+                    <Button variant="ghost" onClick={() => cancel(i)} disabled={pending}>
+                      Not now
+                    </Button>
+                  </div>
+                )}
+              </div>
+            ) : turn.role === "note" ? (
+              <p key={i} className="text-sm text-muted-foreground">{turn.text}</p>
             ) : (
               <p key={i} className="text-sm text-loss">{turn.text}</p>
             ),
