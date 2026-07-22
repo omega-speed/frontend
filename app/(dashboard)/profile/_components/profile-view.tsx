@@ -13,11 +13,17 @@ import {
 import { CornerAccents } from "@/components/ui/corner-accents";
 import {
   getTwin,
+  refreshMatches,
   updateConsent,
   type StudentTwin,
   type TwinAttribute,
 } from "../service";
-import { CATALOG, CATALOG_KEYS, type CatalogField } from "../catalog";
+import {
+  CATALOG,
+  CATALOG_KEYS,
+  MATCH_INPUT_KEYS,
+  type CatalogField,
+} from "../catalog";
 import { ConfidenceBadge, SensitivityMarker } from "./confidence";
 import { EditAttributeDialog } from "./edit-attribute-dialog";
 import { HistorySheet } from "./history-sheet";
@@ -41,6 +47,19 @@ export function ProfileView({ initialTwin }: { initialTwin: StudentTwin }) {
   async function refresh() {
     const res = await getTwin();
     if (res?.success && res.data) setTwin(res.data as StudentTwin);
+  }
+
+  // After saving a field Q-Match reads, rebuild the learner's matches so the
+  // change is reflected the next time they open Matches.
+  async function onFieldSaved(field: CatalogField) {
+    await refresh();
+    if (!MATCH_INPUT_KEYS.has(`${field.category}:${field.name}`)) return;
+    const res = await refreshMatches();
+    if (res?.success) {
+      toast.success("Rebuilt your matches — open the Matches tab to see them shift.");
+    } else {
+      toast.error(res?.message ?? "Saved, but couldn't rebuild your matches.");
+    }
   }
 
   // Current value for a catalog field: prefer a fact, fall back to an estimate.
@@ -226,7 +245,7 @@ export function ProfileView({ initialTwin }: { initialTwin: StudentTwin }) {
           )}
           open={!!editing}
           onOpenChange={(open) => !open && setEditing(null)}
-          onSaved={refresh}
+          onSaved={() => onFieldSaved(editing)}
         />
       )}
 
