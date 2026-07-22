@@ -24,6 +24,7 @@ const navMain = [
     title: "Platform",
     items: [
       { title: "Home", url: "/home" },
+      { title: "Ask Ollie", url: "/ollie" },
       { title: "Matches", url: "/matches" },
       { title: "Programs", url: "/programs" },
       { title: "Profile", url: "/profile" },
