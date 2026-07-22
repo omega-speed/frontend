@@ -1,6 +1,20 @@
 "use server";
 
 import api from "@/lib/api";
+import { getCurrentUser } from "@/lib/auth";
+
+// POST /q-match/learners/:id/matches/refresh — rebuild the signed-in learner's
+// matches against the active catalog using their latest twin. Called after a
+// matching-input edit so the change actually moves the results.
+export async function refreshMatches() {
+  const user = await getCurrentUser();
+  if (!user) return { success: false, message: "Not signed in" };
+  try {
+    return await api.post(`q-match/learners/${user.id}/matches/refresh`, {});
+  } catch (error) {
+    return error;
+  }
+}
 
 // Mirrors the backend Student Digital Twin contract (SDT-002).
 export interface TwinAttribute {

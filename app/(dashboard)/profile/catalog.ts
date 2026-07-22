@@ -119,9 +119,88 @@ export const CATALOG: CatalogSection[] = [
       },
     ],
   },
+  {
+    // These fields write the exact twin attributes Q-Match reads, so changing one
+    // and rebuilding actually moves your matches. Kept in Q-Match's vocabulary on
+    // purpose (academic/gpa, financial/annual_budget, …) — no translation layer.
+    key: "matching",
+    title: "What we match you on",
+    blurb:
+      "The details Q-Match scores your programs against. Change any of these and we rebuild your matches.",
+    fields: [
+      {
+        category: "academic",
+        name: "gpa",
+        label: "GPA (0–4 scale)",
+        placeholder: "e.g. 3.7",
+      },
+      {
+        category: "academic",
+        name: "intended_degree_level",
+        label: "Degree you're pursuing",
+        placeholder: "Select level",
+        options: [
+          { value: "bachelor", label: "Bachelor's" },
+          { value: "master", label: "Master's" },
+          { value: "doctorate", label: "Doctorate" },
+          { value: "certificate", label: "Certificate" },
+        ],
+      },
+      {
+        category: "academic",
+        name: "discipline",
+        label: "Field of study",
+        placeholder: "Select field",
+        options: [
+          { value: "computer_science", label: "Computer Science" },
+          { value: "data_science", label: "Data Science" },
+          { value: "engineering", label: "Engineering" },
+          { value: "business", label: "Business" },
+          { value: "life_sciences", label: "Life Sciences" },
+          { value: "social_sciences", label: "Social Sciences" },
+        ],
+      },
+      {
+        category: "financial",
+        name: "annual_budget",
+        label: "Annual budget (USD)",
+        placeholder: "e.g. 35000",
+      },
+      {
+        category: "preference",
+        name: "modality",
+        label: "Study mode",
+        placeholder: "Select mode",
+        options: [
+          { value: "ON_CAMPUS", label: "On campus" },
+          { value: "ONLINE", label: "Online" },
+        ],
+      },
+      {
+        category: "preference",
+        name: "country",
+        label: "Preferred country",
+        placeholder: "Select country",
+        options: [
+          { value: "US", label: "United States" },
+          { value: "CA", label: "Canada" },
+          { value: "GB", label: "United Kingdom" },
+          { value: "AU", label: "Australia" },
+        ],
+      },
+    ],
+  },
 ];
 
 // Fast lookup of whether a (category, name) is part of the curated catalog.
 export const CATALOG_KEYS = new Set(
   CATALOG.flatMap((s) => s.fields.map((f) => `${f.category}:${f.name}`)),
+);
+
+// The subset of catalog fields Q-Match consumes — editing any of these should
+// rebuild the learner's matches.
+export const MATCH_INPUT_KEYS = new Set(
+  (CATALOG.find((s) => s.key === "matching")?.fields ?? []).map(
+    (f) => `${f.category}:${f.name}`,
+  ),
 );
