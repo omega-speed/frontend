@@ -1,6 +1,18 @@
 // Mirrors the backend OllieAnswer contract (POST /ollie/ask, QIP-OLLIE-000001..010).
 
-export type OllieIntent = "MATCH_GUIDANCE" | "PROFILE_REVIEW" | "GENERAL";
+export type OllieIntent =
+  | "MATCH_GUIDANCE"
+  | "PROFILE_UPDATE"
+  | "FUNDING"
+  | "PROFILE_REVIEW"
+  | "GENERAL";
+
+export interface Declaration {
+  category: string;
+  name: string;
+  value: unknown;
+  label: string;
+}
 
 export interface InterpretedIntent {
   intent: OllieIntent;
@@ -55,4 +67,5 @@ export interface OllieAnswer {
   plan: OrchestrationPlan;
   synthesis: Synthesis;
   options: OllieOption[];
+  proposals?: Declaration[];
 }

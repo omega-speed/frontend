@@ -59,6 +59,12 @@ export function OllieAnswerCard({ answer }: { answer: OllieAnswer }) {
         </p>
       )}
 
+      {synthesis.requiresConfirmation && (
+        <p className="text-sm font-semibold leading-relaxed border-l-2 border-gold/50 pl-3">
+          {synthesis.requiresConfirmation}
+        </p>
+      )}
+
       {placed.length > 0 && (
         <div className="divide-y divide-border border-t border-b border-border">
           {placed.map((o) => (
