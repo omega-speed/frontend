@@ -12,6 +12,9 @@ export interface Declaration {
   name: string;
   value: unknown;
   label: string;
+  // How private the fact is; Ollie sets it and it round-trips back on confirm so
+  // the twin can gate it. "SENSITIVE" for things like financial need or first-gen.
+  sensitivity?: "PERSONAL" | "SENSITIVE";
 }
 
 export interface InterpretedIntent {
