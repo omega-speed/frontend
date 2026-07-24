@@ -27,7 +27,7 @@ export function useSignIn() {
         return;
       }
       toast.success(response.message);
-      push("/home");
+      push("/ollie");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "An error occurred");
     }

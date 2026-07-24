@@ -1,12 +1,5 @@
 import { Suspense, ReactNode } from "react";
-import { AppSidebar } from "@/components/app-sidebar";
-import { DynamicBreadcrumb } from "@/components/dynamic-breadcrumb";
-import { Separator } from "@/components/ui/separator";
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar";
+import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
 import UserProfile from "@/components/molecules/user-profile";
 
@@ -14,26 +7,25 @@ import UserProfile from "@/components/molecules/user-profile";
 // Without this, `next build` tries to statically prerender them, which fails.
 export const dynamic = "force-dynamic";
 
-export default async function layout({ children }: { children: ReactNode }) {
+// The whole signed-in app is one screen: Ollie. No sidebar, no page chrome — a
+// slim top bar with the wordmark and the account menu, and Ollie fills the rest.
+export default function layout({ children }: { children: ReactNode }) {
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1" />
-          <Separator
-            orientation="vertical"
-            className="mr-2 data-vertical:h-4 data-vertical:self-auto"
-          />
-          <DynamicBreadcrumb />
-          <div className="ml-auto flex items-center gap-4">
-            <Suspense fallback={<Skeleton className="h-8 w-28" />}>
-              <UserProfile />
-            </Suspense>
-          </div>
-        </header>
-        <div className="flex flex-1 flex-col gap-4 p-4">{children}</div>
-      </SidebarInset>
-    </SidebarProvider>
+    <div className="flex min-h-svh flex-col bg-background">
+      <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-2 border-b border-border bg-background/95 px-4 backdrop-blur supports-backdrop-filter:bg-background/80 md:px-6">
+        <Link
+          href="/ollie"
+          className="text-sm font-black uppercase tracking-[0.28em] text-primary"
+        >
+          Qoollege
+        </Link>
+        <div className="ml-auto flex items-center gap-4">
+          <Suspense fallback={<Skeleton className="h-8 w-28" />}>
+            <UserProfile />
+          </Suspense>
+        </div>
+      </header>
+      <main className="flex flex-1 flex-col">{children}</main>
+    </div>
   );
 }
