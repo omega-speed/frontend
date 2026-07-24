@@ -35,7 +35,7 @@ export function useSignUp() {
       // Backend logs the account in on registration (tokens already stored),
       // so go straight into the app.
       toast.success(response.message ?? "Account created");
-      push("/home");
+      push("/ollie");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "An error occurred");
     }
