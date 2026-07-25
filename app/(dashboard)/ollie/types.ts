@@ -68,4 +68,7 @@ export interface OllieAnswer {
   synthesis: Synthesis;
   options: OllieOption[];
   proposals?: Declaration[];
+  // Claude's conversational delivery of the (deterministic) synthesis, when
+  // available. The facts still live in `synthesis`/`options`; this only rewords.
+  voice?: string;
 }
