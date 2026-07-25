@@ -37,13 +37,6 @@ export function AskOllie({ onActivity }: { onActivity?: () => void }) {
     if (pending) scrollToEnd();
   }, [pending]);
 
-  // When any turn finishes (send / save / undo), nudge the shortlist panel to refetch.
-  const wasPending = useRef(false);
-  useEffect(() => {
-    if (wasPending.current && !pending) onActivity?.();
-    wasPending.current = pending;
-  }, [pending, onActivity]);
-
   function grow(el: HTMLTextAreaElement) {
     el.style.height = "auto";
     el.style.height = `${Math.min(el.scrollHeight, 176)}px`;
@@ -64,6 +57,9 @@ export function AskOllie({ onActivity }: { onActivity?: () => void }) {
         return next;
       });
       scrollToEnd();
+      // Refresh the panels only when the turn actually changed the profile (an
+      // auto-saved fact) — a plain question or greeting doesn't move the shortlist.
+      if (res.ok && res.answer.saved && res.answer.saved.length > 0) onActivity?.();
     });
   }
 
@@ -89,6 +85,7 @@ export function AskOllie({ onActivity }: { onActivity?: () => void }) {
       const res = await confirmDeclare(declarations);
       setTurns((t) => [...t, res.ok ? { role: "ollie", answer: res.answer } : { role: "error", text: res.message }]);
       scrollToEnd();
+      onActivity?.(); // response is in — refresh the shortlist / About panels now
     });
   }
 
@@ -107,6 +104,7 @@ export function AskOllie({ onActivity }: { onActivity?: () => void }) {
         res.ok ? { role: "ollie", answer: res.answer } : { role: "error", text: res.message },
       ]);
       scrollToEnd();
+      onActivity?.(); // response is in — refresh the shortlist / About panels now
     });
   }
 
@@ -123,6 +121,7 @@ export function AskOllie({ onActivity }: { onActivity?: () => void }) {
       const res = await undoDeclare(saved);
       setTurns((t) => [...t, res.ok ? { role: "ollie", answer: res.answer } : { role: "error", text: res.message }]);
       scrollToEnd();
+      onActivity?.(); // response is in — refresh the shortlist / About panels now
     });
   }
 
