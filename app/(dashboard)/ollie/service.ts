@@ -2,7 +2,7 @@
 
 import api from "@/lib/api";
 import { getCurrentUser } from "@/lib/auth";
-import type { Declaration, OllieAnswer, ShortlistView } from "./types";
+import type { AboutView, Declaration, OllieAnswer, ShortlistView } from "./types";
 
 export type AskResult =
   | { ok: true; answer: OllieAnswer }
@@ -49,6 +49,21 @@ export async function getShortlist(): Promise<ShortlistResult> {
     return { ok: false, message: res?.message ?? "Couldn't load your shortlist." };
   } catch {
     return { ok: false, message: "Couldn't load your shortlist." };
+  }
+}
+
+// GET /ollie/about — what Ollie knows, split into shaping-the-list vs noted.
+export type AboutResult = { ok: true; view: AboutView } | { ok: false; message: string };
+
+export async function getAbout(): Promise<AboutResult> {
+  const user = await getCurrentUser();
+  if (!user) return { ok: false, message: "Please sign in again." };
+  try {
+    const res = await api.get("ollie/about");
+    if (res?.success && res.data) return { ok: true, view: res.data as AboutView };
+    return { ok: false, message: res?.message ?? "Couldn't load your profile." };
+  } catch {
+    return { ok: false, message: "Couldn't load your profile." };
   }
 }
 

@@ -89,6 +89,18 @@ export interface ShortlistView {
   options: ShortlistItem[];
 }
 
+// "About you" (GET /ollie/about) — what Ollie knows, split into what's shaping the
+// shortlist vs what's noted but not yet influencing it.
+export interface AboutFact {
+  label: string;
+  value: string;
+}
+
+export interface AboutView {
+  using: AboutFact[];
+  noted: AboutFact[];
+}
+
 export interface OllieAnswer {
   interpreted: InterpretedIntent;
   plan: OrchestrationPlan;
