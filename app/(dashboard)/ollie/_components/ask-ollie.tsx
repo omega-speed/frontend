@@ -8,7 +8,6 @@ import { OllieAnswerCard } from "./ollie-answer";
 import { OllieThinking } from "./ollie-thinking";
 import { OllieMark } from "./ollie-mark";
 import { OllieIntakeForm } from "./ollie-intake-form";
-import { WARM_SOFT } from "./ollie-theme";
 
 type Turn =
   | { role: "user"; text: string }
@@ -129,7 +128,13 @@ export function AskOllie({ onActivity }: { onActivity?: () => void }) {
   const empty = turns.length === 0 && !pending;
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="relative flex h-full flex-col">
+      {/* warm ambient wash — subtle, top-anchored */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-72"
+        style={{ background: "radial-gradient(60% 100% at 50% 0%, rgba(255,122,92,0.10), transparent)" }}
+      />
       <div className="flex-1 overflow-y-auto">
         {empty ? (
           <motion.div
@@ -141,10 +146,10 @@ export function AskOllie({ onActivity }: { onActivity?: () => void }) {
             <div className="relative">
               <div
                 aria-hidden
-                className="absolute left-1/2 top-1/2 -z-10 size-44 -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl"
-                style={{ background: WARM_SOFT }}
+                className="absolute left-1/2 top-1/2 -z-10 size-64 -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl"
+                style={{ background: "radial-gradient(circle, rgba(255,122,92,0.30), rgba(109,94,252,0.16), transparent 70%)" }}
               />
-              <OllieMark size={56} />
+              <OllieMark size={64} />
             </div>
             <h1 className="mt-5 text-2xl font-semibold leading-tight text-foreground text-balance sm:text-3xl">
               Hey — I&apos;m{" "}
@@ -264,7 +269,7 @@ export function AskOllie({ onActivity }: { onActivity?: () => void }) {
           }}
           className="mx-auto w-full max-w-3xl"
         >
-          <div className="flex items-end gap-2 rounded-2xl border border-border bg-card px-3 py-2 transition-colors focus-within:border-primary/50">
+          <div className="flex items-end gap-2 rounded-[1.6rem] border border-border bg-card px-4 py-2.5 shadow-[0_2px_16px_-6px_rgba(30,25,15,0.14)] transition-all focus-within:border-primary/60 focus-within:shadow-[0_8px_28px_-8px_rgba(43,69,204,0.28)]">
             <textarea
               ref={inputRef}
               value={input}
@@ -278,16 +283,16 @@ export function AskOllie({ onActivity }: { onActivity?: () => void }) {
                   send(input);
                 }
               }}
-              placeholder="Ask Ollie anything about where to apply, what you can afford, or your chances…"
+              placeholder="Ask Ollie anything — where to apply, what you can afford, your chances…"
               rows={1}
-              className="max-h-44 flex-1 resize-none bg-transparent py-1.5 text-sm leading-relaxed text-foreground outline-none placeholder:text-muted-foreground/40"
+              className="max-h-44 flex-1 resize-none bg-transparent py-1.5 text-[15px] leading-relaxed text-foreground outline-none placeholder:text-muted-foreground/40"
             />
             <button
               type="submit"
               disabled={pending || !input.trim()}
               aria-label="Send"
               style={{ background: "linear-gradient(135deg, var(--primary), #6d5efc)" }}
-              className="mb-0.5 flex size-8 shrink-0 items-center justify-center rounded-full text-primary-foreground shadow-sm transition-all hover:scale-105 hover:shadow-md disabled:scale-100 disabled:opacity-30"
+              className="mb-0.5 flex size-9 shrink-0 items-center justify-center rounded-full text-primary-foreground shadow-md transition-all hover:scale-105 hover:shadow-lg disabled:scale-100 disabled:opacity-30"
             >
               <svg
                 viewBox="0 0 24 24"

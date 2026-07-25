@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { getShortlist } from "../service";
 import type { ShortlistItem, ShortlistView } from "../types";
@@ -152,8 +152,6 @@ function ProgressStepper({ progress }: { progress: ShortlistView["progress"] }) 
 export function OllieShortlist({ refreshKey }: { refreshKey: number }) {
   const [view, setView] = useState<ShortlistView | null>(null);
   const [loading, startLoad] = useTransition();
-  const [celebrate, setCelebrate] = useState(false);
-  const celebrated = useRef(false);
 
   useEffect(() => {
     startLoad(async () => {
@@ -161,16 +159,6 @@ export function OllieShortlist({ refreshKey }: { refreshKey: number }) {
       if (res.ok) setView(res.view);
     });
   }, [refreshKey]);
-
-  // A small, one-time celebratory beat the first time real schools land.
-  useEffect(() => {
-    if (view?.ready && view.options.length > 0 && !celebrated.current) {
-      celebrated.current = true;
-      setCelebrate(true);
-      const id = setTimeout(() => setCelebrate(false), 3400);
-      return () => clearTimeout(id);
-    }
-  }, [view]);
 
   const count = view?.ready ? view.options.length : 0;
 
@@ -192,21 +180,15 @@ export function OllieShortlist({ refreshKey }: { refreshKey: number }) {
         {/* Not ready — a friendly momentum stepper */}
         {view && !view.ready && <ProgressStepper progress={view.progress} />}
 
-        {/* First schools just landed — a warm, brief celebratory note */}
-        <AnimatePresence>
-          {celebrate && (
-            <motion.div
-              initial={{ opacity: 0, y: -6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              className="mx-5 mt-4 rounded-xl px-3.5 py-2.5 text-sm font-medium"
-              style={{ background: WARM_SOFT, color: WARM }}
-            >
-              Nice — your first matches are in. Tell me more and I&apos;ll sharpen the list.
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* A warm encouragement line once real schools are on the list */}
+        {view?.ready && count > 0 && (
+          <div
+            className="mx-5 mt-4 rounded-xl px-3.5 py-2.5 text-sm font-medium"
+            style={{ background: WARM_SOFT, color: WARM }}
+          >
+            Your list is taking shape — tell me more and I&apos;ll sharpen it.
+          </div>
+        )}
 
         {/* Ready but empty */}
         {view?.ready && view.options.length === 0 && (

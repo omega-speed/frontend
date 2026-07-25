@@ -13,11 +13,14 @@ export default function layout({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-svh flex-col bg-background">
       <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-2 border-b border-border bg-background/95 px-4 backdrop-blur supports-backdrop-filter:bg-background/80 md:px-6">
-        <Link
-          href="/ollie"
-          className="text-sm font-black uppercase tracking-[0.28em] text-primary"
-        >
-          Qoollege
+        <Link href="/ollie" className="flex items-center gap-2.5">
+          <span
+            className="flex size-7 items-center justify-center rounded-full shadow-sm"
+            style={{ background: "linear-gradient(135deg, var(--primary), #6d5efc)" }}
+          >
+            <span className="size-2 rounded-full bg-white/85" />
+          </span>
+          <span className="text-sm font-black uppercase tracking-[0.28em] text-primary">Qoollege</span>
         </Link>
         <div className="ml-auto flex items-center gap-4">
           <Suspense fallback={<Skeleton className="h-8 w-28" />}>
