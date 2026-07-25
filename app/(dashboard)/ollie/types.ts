@@ -65,6 +65,14 @@ export interface OllieOption {
   abstained: boolean;
 }
 
+// One data-backed line of the "why": the factor, the evidence tying your facts to
+// the school's, and how sure Ollie is.
+export interface ShortlistFactor {
+  label: string;
+  detail: string;
+  confidence: string;
+}
+
 // The side shortlist (GET /ollie/shortlist) — schools + why, shown in the panel.
 export interface ShortlistItem {
   optionId: string;
@@ -72,6 +80,7 @@ export interface ShortlistItem {
   program: string;
   category: string | null;
   reasons: string[];
+  breakdown: ShortlistFactor[];
 }
 
 export interface ShortlistView {
