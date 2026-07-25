@@ -22,8 +22,7 @@ export async function askOllie(message: string): Promise<AskResult> {
   }
 }
 
-// POST /ollie/declare — confirm a profile change Ollie proposed; it writes the
-// twin and rebuilds matches.
+// POST /ollie/declare — confirm a SENSITIVE change Ollie proposed.
 export async function confirmDeclare(declarations: Declaration[]): Promise<AskResult> {
   const user = await getCurrentUser();
   if (!user) return { ok: false, message: "Please sign in again." };
@@ -33,5 +32,18 @@ export async function confirmDeclare(declarations: Declaration[]): Promise<AskRe
     return { ok: false, message: res?.message ?? "Couldn't save that just now." };
   } catch {
     return { ok: false, message: "Couldn't save that just now." };
+  }
+}
+
+// POST /ollie/undo — reverse an auto-saved fact; restores the previous value.
+export async function undoDeclare(declarations: Declaration[]): Promise<AskResult> {
+  const user = await getCurrentUser();
+  if (!user) return { ok: false, message: "Please sign in again." };
+  try {
+    const res = await api.post("ollie/undo", { declarations });
+    if (res?.success && res.data) return { ok: true, answer: res.data as OllieAnswer };
+    return { ok: false, message: res?.message ?? "Couldn't undo that just now." };
+  } catch {
+    return { ok: false, message: "Couldn't undo that just now." };
   }
 }
