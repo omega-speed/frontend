@@ -8,6 +8,7 @@ import { OllieAnswerCard } from "./ollie-answer";
 import { OllieThinking } from "./ollie-thinking";
 import { OllieMark } from "./ollie-mark";
 import { OllieIntakeForm } from "./ollie-intake-form";
+import { WARM_SOFT } from "./ollie-theme";
 
 type Turn =
   | { role: "user"; text: string }
@@ -137,15 +138,22 @@ export function AskOllie({ onActivity }: { onActivity?: () => void }) {
             transition={{ duration: 0.4 }}
             className="mx-auto flex h-full w-full max-w-3xl flex-col items-center justify-center px-4 text-center"
           >
-            <OllieMark size={56} />
-            <h1 className="mt-5 text-2xl font-semibold leading-tight text-foreground sm:text-3xl">
+            <div className="relative">
+              <div
+                aria-hidden
+                className="absolute left-1/2 top-1/2 -z-10 size-44 -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl"
+                style={{ background: WARM_SOFT }}
+              />
+              <OllieMark size={56} />
+            </div>
+            <h1 className="mt-5 text-2xl font-semibold leading-tight text-foreground text-balance sm:text-3xl">
               Hey — I&apos;m{" "}
               <span className="bg-linear-to-r from-primary to-[#6d5efc] bg-clip-text text-transparent">Ollie</span>.
-              Where should we start?
+              Let&apos;s find where you belong.
             </h1>
             <p className="mt-3 max-w-md text-sm leading-relaxed text-muted-foreground">
-              Tell me what you&apos;re weighing — where to apply, what you can afford, your
-              chances — and I&apos;ll pull it together and show you how I got there.
+              Tell me what you&apos;re into, what you can spend, and what matters to you — I&apos;ll build
+              your shortlist as we talk and show you exactly why each school made it.
             </p>
             <div className="mt-7 flex flex-wrap justify-center gap-2">
               {SUGGESTIONS.map((s, i) => (

@@ -86,6 +86,7 @@ export interface ShortlistItem {
 export interface ShortlistView {
   ready: boolean;
   needs: string[];
+  progress: { field: boolean; degree: boolean; budget: boolean };
   options: ShortlistItem[];
 }
 
