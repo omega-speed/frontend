@@ -62,6 +62,21 @@ export interface OllieOption {
   abstained: boolean;
 }
 
+// The side shortlist (GET /ollie/shortlist) — schools + why, shown in the panel.
+export interface ShortlistItem {
+  optionId: string;
+  institution: string;
+  program: string;
+  category: string | null;
+  reasons: string[];
+}
+
+export interface ShortlistView {
+  ready: boolean;
+  needs: string[];
+  options: ShortlistItem[];
+}
+
 export interface OllieAnswer {
   interpreted: InterpretedIntent;
   plan: OrchestrationPlan;

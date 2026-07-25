@@ -1,58 +1,8 @@
 "use client";
 
-import { motion } from "framer-motion";
-import type { OllieAnswer, OllieOption } from "../types";
+import type { OllieAnswer } from "../types";
 import { OllieMark } from "./ollie-mark";
 import { OllieReasoning } from "./ollie-reasoning";
-
-// Portfolio category → its colour + how a counsellor would name it. The colour is
-// the visual "chance" cue: green = you're in good shape, blue = a fair fight,
-// warm/red = a stretch.
-const CATEGORY: Record<string, { label: string; accent: string; text: string; tint: string }> = {
-  FINANCIAL_SAFETY: { label: "Safety", accent: "var(--win)", text: "text-win", tint: "bg-win/10" },
-  LIKELY: { label: "Likely", accent: "var(--win)", text: "text-win", tint: "bg-win/10" },
-  TARGET: { label: "Target", accent: "var(--primary)", text: "text-primary", tint: "bg-primary/10" },
-  REACH: { label: "Reach", accent: "var(--loss)", text: "text-loss", tint: "bg-loss/10" },
-  HIGH_UNCERTAINTY: { label: "Unsure", accent: "var(--muted-foreground)", text: "text-muted-foreground", tint: "bg-muted" },
-  SPECIAL_PATHWAY: { label: "Pathway", accent: "var(--social)", text: "text-social", tint: "bg-social/10" },
-  STRATEGIC_WILDCARD: { label: "Wildcard", accent: "var(--gold)", text: "text-gold", tint: "bg-gold/10" },
-};
-
-const DOMINANT: Record<string, string> = {
-  academic_fit: "academic fit",
-  affordability: "affordability",
-  likelihood: "your chances",
-  preference: "your preferences",
-};
-
-function OptionCard({ option, index }: { option: OllieOption; index: number }) {
-  const c = CATEGORY[option.category ?? ""] ?? CATEGORY.HIGH_UNCERTAINTY;
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.32, delay: index * 0.06 }}
-      className="group relative overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:border-transparent"
-    >
-      {/* category accent rail */}
-      <span className="absolute inset-y-0 left-0 w-1.5" style={{ background: c.accent }} aria-hidden />
-      <div className="flex items-center justify-between gap-3 py-3.5 pl-5 pr-4">
-        <div className="min-w-0">
-          <p className="truncate text-[15px] font-semibold leading-tight">{option.institution}</p>
-          <p className="truncate text-xs text-muted-foreground">{option.program}</p>
-          {option.dominant && DOMINANT[option.dominant] && (
-            <p className="mt-1 text-[11px] text-muted-foreground">
-              strongest on <span className="font-medium text-foreground">{DOMINANT[option.dominant]}</span>
-            </p>
-          )}
-        </div>
-        <span className={`shrink-0 rounded-full px-3 py-1 text-[11px] font-bold uppercase ${c.tint} ${c.text}`}>
-          {c.label}
-        </span>
-      </div>
-    </motion.div>
-  );
-}
 
 function Section({ label, tone = "muted", children }: { label: string; tone?: "muted" | "gold"; children: React.ReactNode }) {
   return (
@@ -64,8 +14,7 @@ function Section({ label, tone = "muted", children }: { label: string; tone?: "m
 }
 
 export function OllieAnswerCard({ answer }: { answer: OllieAnswer }) {
-  const { synthesis, options } = answer;
-  const placed = options.filter((o) => !o.abstained && o.category);
+  const { synthesis } = answer;
   const spoken = answer.voice?.trim();
 
   return (
@@ -98,14 +47,6 @@ export function OllieAnswerCard({ answer }: { answer: OllieAnswer }) {
 
         {!spoken && synthesis.requiresConfirmation && (
           <p className="border-l-2 border-gold/60 pl-3 text-sm font-semibold leading-relaxed">{synthesis.requiresConfirmation}</p>
-        )}
-
-        {placed.length > 0 && (
-          <div className="space-y-2.5">
-            {placed.map((o, i) => (
-              <OptionCard key={o.optionId} option={o} index={i} />
-            ))}
-          </div>
         )}
 
         {synthesis.tradeoffs.length > 0 && (

@@ -21,7 +21,7 @@ const SUGGESTIONS = [
   "What do you know about me?",
 ];
 
-export function AskOllie() {
+export function AskOllie({ onActivity }: { onActivity?: () => void }) {
   const [turns, setTurns] = useState<Turn[]>([]);
   const [input, setInput] = useState("");
   const [pending, startTransition] = useTransition();
@@ -34,6 +34,13 @@ export function AskOllie() {
   useEffect(() => {
     if (pending) scrollToEnd();
   }, [pending]);
+
+  // When any turn finishes (send / save / undo), nudge the shortlist panel to refetch.
+  const wasPending = useRef(false);
+  useEffect(() => {
+    if (wasPending.current && !pending) onActivity?.();
+    wasPending.current = pending;
+  }, [pending, onActivity]);
 
   function grow(el: HTMLTextAreaElement) {
     el.style.height = "auto";
@@ -95,7 +102,7 @@ export function AskOllie() {
   const empty = turns.length === 0 && !pending;
 
   return (
-    <div className="flex h-[calc(100svh-3.5rem)] flex-col">
+    <div className="flex h-full flex-col">
       <div className="flex-1 overflow-y-auto">
         {empty ? (
           <motion.div
