@@ -5,6 +5,13 @@ import { AnimatePresence, motion } from "framer-motion";
 import { getShortlist } from "../service";
 import type { ShortlistItem, ShortlistView } from "../types";
 
+// LOW-confidence factors are honest estimates; flag them quietly.
+const CONFIDENCE_NOTE: Record<string, string> = {
+  LOW: "estimate",
+  MODERATE: "fairly sure",
+  HIGH: "confident",
+};
+
 // Category → a small, quiet colour cue (a dot + word). Deliberately restrained —
 // no glossy cards or accent rails — so the panel reads like a real advisor's
 // working list, not a generated grid.
@@ -20,6 +27,7 @@ const CATEGORY: Record<string, { label: string; color: string }> = {
 
 function Row({ item, index }: { item: ShortlistItem; index: number }) {
   const c = CATEGORY[item.category ?? ""] ?? CATEGORY.HIGH_UNCERTAINTY;
+  const [open, setOpen] = useState(false);
   return (
     <motion.li
       initial={{ opacity: 0, y: 8 }}
@@ -35,6 +43,7 @@ function Row({ item, index }: { item: ShortlistItem; index: number }) {
         </span>
       </div>
       <p className="mt-0.5 text-xs text-muted-foreground">{item.program}</p>
+
       {item.reasons.length > 0 && (
         <ul className="mt-2 space-y-1">
           {item.reasons.map((r, i) => (
@@ -44,6 +53,45 @@ function Row({ item, index }: { item: ShortlistItem; index: number }) {
             </li>
           ))}
         </ul>
+      )}
+
+      {item.breakdown.length > 0 && (
+        <div className="mt-2.5">
+          <button
+            type="button"
+            onClick={() => setOpen((o) => !o)}
+            className="flex items-center gap-1 text-[11px] font-semibold uppercase text-muted-foreground transition-colors hover:text-primary"
+            aria-expanded={open}
+          >
+            <span className={`inline-block transition-transform duration-200 ${open ? "rotate-90" : ""}`}>›</span>
+            {open ? "Hide the evidence" : "Why this one"}
+          </button>
+          <AnimatePresence initial={false}>
+            {open && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.22 }}
+                className="overflow-hidden"
+              >
+                <dl className="mt-2 space-y-2.5 border-l border-border pl-3">
+                  {item.breakdown.map((f, i) => (
+                    <div key={i}>
+                      <dt className="flex items-center gap-2 text-[11px] font-bold uppercase text-foreground">
+                        {f.label}
+                        {CONFIDENCE_NOTE[f.confidence] && (
+                          <span className="font-medium normal-case text-muted-foreground">· {CONFIDENCE_NOTE[f.confidence]}</span>
+                        )}
+                      </dt>
+                      <dd className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{f.detail}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       )}
     </motion.li>
   );
