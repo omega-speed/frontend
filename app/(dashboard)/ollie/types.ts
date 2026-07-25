@@ -70,7 +70,8 @@ export interface OllieAnswer {
   plan: OrchestrationPlan;
   synthesis: Synthesis;
   options: OllieOption[];
-  proposals?: Declaration[];
+  proposals?: Declaration[]; // SENSITIVE change awaiting explicit Save/Not now
+  saved?: Declaration[]; // low-stakes fact already auto-saved this turn — offer Undo
   // Claude's conversational delivery of the (deterministic) synthesis, when
   // available. The facts still live in `synthesis`/`options`; this only rewords.
   voice?: string;
