@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { AskOllie } from "./ask-ollie";
-import { OllieShortlist } from "./ollie-shortlist";
+import { OlliePanel } from "./ollie-panel";
 
 // Two panes: the conversation on the left, the live shortlist on the right. Each
 // chat turn bumps `refreshKey` so the panel refetches and tracks the conversation.
@@ -15,8 +15,8 @@ export function OllieWorkspace() {
       <div className="min-w-0 flex-1">
         <AskOllie onActivity={bump} />
       </div>
-      <aside className="hidden w-[360px] shrink-0 border-l border-border lg:block xl:w-[400px]">
-        <OllieShortlist refreshKey={refreshKey} />
+      <aside className="hidden w-90 shrink-0 border-l border-border lg:block xl:w-100">
+        <OlliePanel refreshKey={refreshKey} />
       </aside>
     </div>
   );

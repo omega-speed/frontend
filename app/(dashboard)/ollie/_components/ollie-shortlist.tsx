@@ -114,13 +114,10 @@ export function OllieShortlist({ refreshKey }: { refreshKey: number }) {
 
   return (
     <div className="flex h-full flex-col bg-background/40">
-      <header className="flex items-center justify-between border-b border-border px-5 py-4">
-        <div>
-          <p className="text-[11px] font-black uppercase text-muted-foreground">Your shortlist</p>
-          <p className="text-sm text-foreground">
-            {view?.ready ? (count > 0 ? `${count} school${count === 1 ? "" : "s"}` : "Nothing to show yet") : "Building as we talk"}
-          </p>
-        </div>
+      <header className="flex items-center justify-between border-b border-border px-5 py-3">
+        <p className="text-sm text-muted-foreground">
+          {view?.ready ? (count > 0 ? `${count} school${count === 1 ? "" : "s"}` : "Nothing to show yet") : "Building as we talk"}
+        </p>
         {loading && (
           <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
             <span className="size-1.5 animate-pulse rounded-full bg-primary" />
