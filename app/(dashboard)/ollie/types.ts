@@ -99,4 +99,5 @@ export interface OllieAnswer {
   // Claude's conversational delivery of the (deterministic) synthesis, when
   // available. The facts still live in `synthesis`/`options`; this only rewords.
   voice?: string;
+  form?: { missing: string[] }; // Ollie needs several essentials → show the quick intake form
 }

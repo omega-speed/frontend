@@ -7,10 +7,12 @@ import type { Declaration, OllieAnswer } from "../types";
 import { OllieAnswerCard } from "./ollie-answer";
 import { OllieThinking } from "./ollie-thinking";
 import { OllieMark } from "./ollie-mark";
+import { OllieIntakeForm } from "./ollie-intake-form";
 
 type Turn =
   | { role: "user"; text: string }
   | { role: "ollie"; answer: OllieAnswer; resolved?: boolean }
+  | { role: "form"; resolved?: boolean }
   | { role: "note"; text: string }
   | { role: "error"; text: string };
 
@@ -55,19 +57,44 @@ export function AskOllie({ onActivity }: { onActivity?: () => void }) {
     setTurns((t) => [...t, { role: "user", text }]);
     startTransition(async () => {
       const res = await askOllie(text);
-      setTurns((t) => [
-        ...t,
-        res.ok ? { role: "ollie", answer: res.answer } : { role: "error", text: res.message },
-      ]);
+      setTurns((t) => {
+        const next: Turn[] = [...t, res.ok ? { role: "ollie", answer: res.answer } : { role: "error", text: res.message }];
+        // Offer the quick form when Ollie needs several essentials — but never stack forms.
+        if (res.ok && res.answer.form && !t.some((x) => x.role === "form" && !x.resolved)) next.push({ role: "form" });
+        return next;
+      });
       scrollToEnd();
     });
   }
 
-  // Mark the proposing turn resolved so its buttons disappear, whatever the choice.
+  // Mark an interactive turn (proposal or form) resolved so its controls disappear.
   function resolveAt(index: number) {
     setTurns((t) =>
-      t.map((turn, i) => (i === index && turn.role === "ollie" ? { ...turn, resolved: true } : turn)),
+      t.map((turn, i) => (i === index && (turn.role === "ollie" || turn.role === "form") ? { ...turn, resolved: true } : turn)),
     );
+  }
+
+  // Open the quick form on demand (the always-available "Fill in my details").
+  function openForm() {
+    if (pending) return;
+    setTurns((t) => (t.some((x) => x.role === "form" && !x.resolved) ? t : [...t, { role: "form" }]));
+    scrollToEnd();
+  }
+
+  // Submit the quick form — save all the essentials at once, then Ollie responds.
+  function submitForm(index: number, declarations: Declaration[]) {
+    if (pending) return;
+    resolveAt(index);
+    startTransition(async () => {
+      const res = await confirmDeclare(declarations);
+      setTurns((t) => [...t, res.ok ? { role: "ollie", answer: res.answer } : { role: "error", text: res.message }]);
+      scrollToEnd();
+    });
+  }
+
+  function skipForm(index: number) {
+    resolveAt(index);
+    setTurns((t) => [...t, { role: "note", text: "No problem — just tell me in the chat." }]);
   }
 
   function save(index: number, proposals: Declaration[]) {
@@ -195,6 +222,12 @@ export function AskOllie({ onActivity }: { onActivity?: () => void }) {
                       </div>
                     )}
                   </div>
+                ) : turn.role === "form" ? (
+                  turn.resolved ? (
+                    <p className="pl-10 text-xs text-muted-foreground">Thanks — got those.</p>
+                  ) : (
+                    <OllieIntakeForm onSubmit={(d) => submitForm(i, d)} onSkip={() => skipForm(i)} pending={pending} />
+                  )
                 ) : turn.role === "note" ? (
                   <p className="pl-10 text-sm text-muted-foreground">{turn.text}</p>
                 ) : (
@@ -264,9 +297,18 @@ export function AskOllie({ onActivity }: { onActivity?: () => void }) {
               </svg>
             </button>
           </div>
-          <p className="mt-2 text-center text-[11px] text-muted-foreground">
-            Ollie shows its thinking and is honest about what it doesn&apos;t know.
-          </p>
+          <div className="mt-2 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center text-[11px] text-muted-foreground">
+            <button
+              type="button"
+              onClick={openForm}
+              disabled={pending}
+              className="font-medium text-primary transition-colors hover:text-primary/80 hover:underline disabled:opacity-40"
+            >
+              Fill in my details
+            </button>
+            <span aria-hidden>·</span>
+            <span>Ollie shows its thinking and is honest about what it doesn&apos;t know.</span>
+          </div>
         </form>
       </div>
     </div>
