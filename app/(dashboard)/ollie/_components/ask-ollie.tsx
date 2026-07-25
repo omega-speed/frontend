@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { askOllie, confirmDeclare, undoDeclare } from "../service";
 import type { Declaration, OllieAnswer } from "../types";
@@ -26,29 +26,32 @@ const SUGGESTIONS = [
 export function AskOllie({ onActivity }: { onActivity?: () => void }) {
   const [turns, setTurns] = useState<Turn[]>([]);
   const [input, setInput] = useState("");
-  const [pending, startTransition] = useTransition();
+  const [busy, setBusy] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const scrollToEnd = () =>
     requestAnimationFrame(() => endRef.current?.scrollIntoView({ behavior: "smooth" }));
 
-  useEffect(() => {
-    if (pending) scrollToEnd();
-  }, [pending]);
-
   function grow(el: HTMLTextAreaElement) {
     el.style.height = "auto";
     el.style.height = `${Math.min(el.scrollHeight, 176)}px`;
   }
 
-  function send(message: string) {
+  // The "thinking…" indicator is driven by an explicit `busy` flag, deliberately
+  // NOT useTransition: a saving turn calls onActivity() to refresh the side panel,
+  // and inside a transition that parent update would keep the transition pending
+  // until the panel's slow refetch finished — leaving a phantom "thinking…" after
+  // Ollie already replied. `busy` clears the instant the answer is appended.
+  async function send(message: string) {
     const text = message.trim();
-    if (!text || pending) return;
+    if (!text || busy) return;
     setInput("");
     if (inputRef.current) inputRef.current.style.height = "auto";
     setTurns((t) => [...t, { role: "user", text }]);
-    startTransition(async () => {
+    scrollToEnd();
+    setBusy(true);
+    try {
       const res = await askOllie(text);
       setTurns((t) => {
         const next: Turn[] = [...t, res.ok ? { role: "ollie", answer: res.answer } : { role: "error", text: res.message }];
@@ -56,11 +59,13 @@ export function AskOllie({ onActivity }: { onActivity?: () => void }) {
         if (res.ok && res.answer.form && !t.some((x) => x.role === "form" && !x.resolved)) next.push({ role: "form" });
         return next;
       });
-      scrollToEnd();
       // Refresh the panels only when the turn actually changed the profile (an
       // auto-saved fact) — a plain question or greeting doesn't move the shortlist.
       if (res.ok && res.answer.saved && res.answer.saved.length > 0) onActivity?.();
-    });
+    } finally {
+      setBusy(false);
+      scrollToEnd();
+    }
   }
 
   // Mark an interactive turn (proposal or form) resolved so its controls disappear.
@@ -72,21 +77,24 @@ export function AskOllie({ onActivity }: { onActivity?: () => void }) {
 
   // Open the quick form on demand (the always-available "Fill in my details").
   function openForm() {
-    if (pending) return;
+    if (busy) return;
     setTurns((t) => (t.some((x) => x.role === "form" && !x.resolved) ? t : [...t, { role: "form" }]));
     scrollToEnd();
   }
 
   // Submit the quick form — save all the essentials at once, then Ollie responds.
-  function submitForm(index: number, declarations: Declaration[]) {
-    if (pending) return;
+  async function submitForm(index: number, declarations: Declaration[]) {
+    if (busy) return;
     resolveAt(index);
-    startTransition(async () => {
+    setBusy(true);
+    try {
       const res = await confirmDeclare(declarations);
       setTurns((t) => [...t, res.ok ? { role: "ollie", answer: res.answer } : { role: "error", text: res.message }]);
-      scrollToEnd();
       onActivity?.(); // response is in — refresh the shortlist / About panels now
-    });
+    } finally {
+      setBusy(false);
+      scrollToEnd();
+    }
   }
 
   function skipForm(index: number) {
@@ -94,18 +102,21 @@ export function AskOllie({ onActivity }: { onActivity?: () => void }) {
     setTurns((t) => [...t, { role: "note", text: "No problem — just tell me in the chat." }]);
   }
 
-  function save(index: number, proposals: Declaration[]) {
-    if (pending) return;
+  async function save(index: number, proposals: Declaration[]) {
+    if (busy) return;
     resolveAt(index);
-    startTransition(async () => {
+    setBusy(true);
+    try {
       const res = await confirmDeclare(proposals);
       setTurns((t) => [
         ...t,
         res.ok ? { role: "ollie", answer: res.answer } : { role: "error", text: res.message },
       ]);
-      scrollToEnd();
       onActivity?.(); // response is in — refresh the shortlist / About panels now
-    });
+    } finally {
+      setBusy(false);
+      scrollToEnd();
+    }
   }
 
   function cancel(index: number) {
@@ -114,18 +125,21 @@ export function AskOllie({ onActivity }: { onActivity?: () => void }) {
   }
 
   // Reverse an auto-saved fact.
-  function undo(index: number, saved: Declaration[]) {
-    if (pending) return;
+  async function undo(index: number, saved: Declaration[]) {
+    if (busy) return;
     resolveAt(index);
-    startTransition(async () => {
+    setBusy(true);
+    try {
       const res = await undoDeclare(saved);
       setTurns((t) => [...t, res.ok ? { role: "ollie", answer: res.answer } : { role: "error", text: res.message }]);
-      scrollToEnd();
       onActivity?.(); // response is in — refresh the shortlist / About panels now
-    });
+    } finally {
+      setBusy(false);
+      scrollToEnd();
+    }
   }
 
-  const empty = turns.length === 0 && !pending;
+  const empty = turns.length === 0 && !busy;
 
   return (
     <div className="relative flex h-full flex-col">
@@ -200,7 +214,7 @@ export function AskOllie({ onActivity }: { onActivity?: () => void }) {
                         <button
                           type="button"
                           onClick={() => save(i, turn.answer.proposals!)}
-                          disabled={pending}
+                          disabled={busy}
                           className="rounded-full bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-40"
                         >
                           Save to my profile
@@ -208,7 +222,7 @@ export function AskOllie({ onActivity }: { onActivity?: () => void }) {
                         <button
                           type="button"
                           onClick={() => cancel(i)}
-                          disabled={pending}
+                          disabled={busy}
                           className="rounded-full px-4 py-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground disabled:opacity-40"
                         >
                           Not now
@@ -226,7 +240,7 @@ export function AskOllie({ onActivity }: { onActivity?: () => void }) {
                         <button
                           type="button"
                           onClick={() => undo(i, turn.answer.saved!)}
-                          disabled={pending}
+                          disabled={busy}
                           className="font-medium text-primary transition-colors hover:text-primary/80 hover:underline disabled:opacity-40"
                         >
                           Undo
@@ -238,7 +252,7 @@ export function AskOllie({ onActivity }: { onActivity?: () => void }) {
                   turn.resolved ? (
                     <p className="pl-10 text-xs text-muted-foreground">Thanks — got those.</p>
                   ) : (
-                    <OllieIntakeForm onSubmit={(d) => submitForm(i, d)} onSkip={() => skipForm(i)} pending={pending} />
+                    <OllieIntakeForm onSubmit={(d) => submitForm(i, d)} onSkip={() => skipForm(i)} pending={busy} />
                   )
                 ) : turn.role === "note" ? (
                   <p className="pl-10 text-sm text-muted-foreground">{turn.text}</p>
@@ -249,7 +263,7 @@ export function AskOllie({ onActivity }: { onActivity?: () => void }) {
             ))}
 
             <AnimatePresence>
-              {pending && (
+              {busy && (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                   <OllieThinking />
                 </motion.div>
@@ -289,7 +303,7 @@ export function AskOllie({ onActivity }: { onActivity?: () => void }) {
             />
             <button
               type="submit"
-              disabled={pending || !input.trim()}
+              disabled={busy || !input.trim()}
               aria-label="Send"
               style={{ background: "linear-gradient(135deg, var(--primary), #6d5efc)" }}
               className="mb-0.5 flex size-9 shrink-0 items-center justify-center rounded-full text-primary-foreground shadow-md transition-all hover:scale-105 hover:shadow-lg disabled:scale-100 disabled:opacity-30"
@@ -313,7 +327,7 @@ export function AskOllie({ onActivity }: { onActivity?: () => void }) {
             <button
               type="button"
               onClick={openForm}
-              disabled={pending}
+              disabled={busy}
               className="font-medium text-primary transition-colors hover:text-primary/80 hover:underline disabled:opacity-40"
             >
               Fill in my details
