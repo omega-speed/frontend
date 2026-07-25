@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { getShortlist } from "../service";
 import type { ShortlistItem, ShortlistView } from "../types";
+import { WARM, WARM_SOFT } from "./ollie-theme";
 
 // LOW-confidence factors are honest estimates; flag them quietly.
 const CONFIDENCE_NOTE: Record<string, string> = {
@@ -97,11 +98,62 @@ function Row({ item, index }: { item: ShortlistItem; index: number }) {
   );
 }
 
+const STEPS: { key: "field" | "degree" | "budget"; label: string }[] = [
+  { key: "field", label: "Field of study" },
+  { key: "degree", label: "Degree level" },
+  { key: "budget", label: "Yearly budget" },
+];
+
+// The three-step momentum stepper shown while the shortlist is still locked.
+function ProgressStepper({ progress }: { progress: ShortlistView["progress"] }) {
+  const done = STEPS.filter((s) => progress[s.key]).length;
+  const nextPending = STEPS.find((s) => !progress[s.key]);
+  return (
+    <div className="px-5 py-6">
+      <p className="text-sm font-semibold text-foreground">You&apos;re building your list</p>
+      <p className="mt-1 text-xs text-muted-foreground">Three quick things unlock your shortlist.</p>
+
+      <div className="mt-4 space-y-2.5">
+        {STEPS.map((s) => {
+          const isDone = progress[s.key];
+          return (
+            <div key={s.key} className="flex items-center gap-2.5 text-sm">
+              <span
+                className="flex size-4 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white"
+                style={{ background: isDone ? WARM : "transparent", border: isDone ? "none" : "1.5px solid var(--border)" }}
+              >
+                {isDone ? "✓" : ""}
+              </span>
+              <span className={isDone ? "text-foreground" : "text-muted-foreground"}>{s.label}</span>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-muted">
+        <motion.div
+          className="h-full rounded-full"
+          style={{ background: WARM }}
+          initial={{ width: 0 }}
+          animate={{ width: `${(done / STEPS.length) * 100}%` }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+        />
+      </div>
+      <p className="mt-2 text-xs text-muted-foreground">
+        {done} of {STEPS.length} —{" "}
+        {nextPending ? <>tell me your {nextPending.label.toLowerCase()} next.</> : "all set!"}
+      </p>
+    </div>
+  );
+}
+
 // The live shortlist. Refetches whenever `refreshKey` changes (after each chat
 // turn) so it tracks the conversation without ever putting schools in the chat.
 export function OllieShortlist({ refreshKey }: { refreshKey: number }) {
   const [view, setView] = useState<ShortlistView | null>(null);
   const [loading, startLoad] = useTransition();
+  const [celebrate, setCelebrate] = useState(false);
+  const celebrated = useRef(false);
 
   useEffect(() => {
     startLoad(async () => {
@@ -109,6 +161,16 @@ export function OllieShortlist({ refreshKey }: { refreshKey: number }) {
       if (res.ok) setView(res.view);
     });
   }, [refreshKey]);
+
+  // A small, one-time celebratory beat the first time real schools land.
+  useEffect(() => {
+    if (view?.ready && view.options.length > 0 && !celebrated.current) {
+      celebrated.current = true;
+      setCelebrate(true);
+      const id = setTimeout(() => setCelebrate(false), 3400);
+      return () => clearTimeout(id);
+    }
+  }, [view]);
 
   const count = view?.ready ? view.options.length : 0;
 
@@ -127,15 +189,24 @@ export function OllieShortlist({ refreshKey }: { refreshKey: number }) {
       </header>
 
       <div className="flex-1 overflow-y-auto">
-        {/* Not ready — what Ollie still needs */}
-        {view && !view.ready && (
-          <div className="px-5 py-6">
-            <p className="text-sm leading-relaxed text-muted-foreground">
-              I&apos;ll start your shortlist once I know{" "}
-              <span className="text-foreground">{view.needs.join(", ")}</span>. Just tell me in the chat.
-            </p>
-          </div>
-        )}
+        {/* Not ready — a friendly momentum stepper */}
+        {view && !view.ready && <ProgressStepper progress={view.progress} />}
+
+        {/* First schools just landed — a warm, brief celebratory note */}
+        <AnimatePresence>
+          {celebrate && (
+            <motion.div
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="mx-5 mt-4 rounded-xl px-3.5 py-2.5 text-sm font-medium"
+              style={{ background: WARM_SOFT, color: WARM }}
+            >
+              Nice — your first matches are in. Tell me more and I&apos;ll sharpen the list.
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Ready but empty */}
         {view?.ready && view.options.length === 0 && (
