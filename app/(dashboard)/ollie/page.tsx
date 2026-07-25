@@ -1,9 +1,8 @@
-import { AskOllie } from "./_components/ask-ollie";
+import { OllieWorkspace } from "./_components/ollie-workspace";
 
 export const dynamic = "force-dynamic";
 
-// The whole signed-in experience is Ollie: a full-height chat that owns its own
-// greeting, scroll, and composer.
+// The signed-in experience: Ollie's chat on the left, the live shortlist on the right.
 export default function OlliePage() {
-  return <AskOllie />;
+  return <OllieWorkspace />;
 }

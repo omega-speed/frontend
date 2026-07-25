@@ -2,7 +2,7 @@
 
 import api from "@/lib/api";
 import { getCurrentUser } from "@/lib/auth";
-import type { Declaration, OllieAnswer } from "./types";
+import type { Declaration, OllieAnswer, ShortlistView } from "./types";
 
 export type AskResult =
   | { ok: true; answer: OllieAnswer }
@@ -32,6 +32,23 @@ export async function confirmDeclare(declarations: Declaration[]): Promise<AskRe
     return { ok: false, message: res?.message ?? "Couldn't save that just now." };
   } catch {
     return { ok: false, message: "Couldn't save that just now." };
+  }
+}
+
+// GET /ollie/shortlist — the schools currently on the learner's shortlist + why.
+export type ShortlistResult =
+  | { ok: true; view: ShortlistView }
+  | { ok: false; message: string };
+
+export async function getShortlist(): Promise<ShortlistResult> {
+  const user = await getCurrentUser();
+  if (!user) return { ok: false, message: "Please sign in again." };
+  try {
+    const res = await api.get("ollie/shortlist");
+    if (res?.success && res.data) return { ok: true, view: res.data as ShortlistView };
+    return { ok: false, message: res?.message ?? "Couldn't load your shortlist." };
+  } catch {
+    return { ok: false, message: "Couldn't load your shortlist." };
   }
 }
 
