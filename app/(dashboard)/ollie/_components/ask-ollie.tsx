@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { askOllie, confirmDeclare, undoDeclare } from "../service";
-import type { Declaration, OllieAnswer } from "../types";
+import type { ConversationMessage, Declaration, OllieAnswer } from "../types";
 import { OllieAnswerCard } from "./ollie-answer";
 import { OllieThinking } from "./ollie-thinking";
 import { OllieMark } from "./ollie-mark";
@@ -23,8 +23,25 @@ const SUGGESTIONS = [
   "What do you know about me?",
 ];
 
-export function AskOllie({ onActivity }: { onActivity?: () => void }) {
-  const [turns, setTurns] = useState<Turn[]>([]);
+// Rehydrate the saved transcript into turns. Past Ollie turns are marked resolved
+// so their one-time controls (Save / Undo / intake form) don't reappear on reload.
+function seedTurns(messages: ConversationMessage[]): Turn[] {
+  const turns: Turn[] = [];
+  for (const m of messages) {
+    if (m.role === "USER" && m.text) turns.push({ role: "user", text: m.text });
+    else if (m.role === "OLLIE" && m.answer) turns.push({ role: "ollie", answer: m.answer, resolved: true });
+  }
+  return turns;
+}
+
+export function AskOllie({
+  onActivity,
+  initialMessages = [],
+}: {
+  onActivity?: () => void;
+  initialMessages?: ConversationMessage[];
+}) {
+  const [turns, setTurns] = useState<Turn[]>(() => seedTurns(initialMessages));
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);

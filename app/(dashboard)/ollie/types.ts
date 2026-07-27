@@ -114,3 +114,13 @@ export interface OllieAnswer {
   voice?: string;
   form?: { missing: string[] }; // Ollie needs several essentials → show the quick intake form
 }
+
+// One saved turn of the Ollie transcript (GET /ollie/conversation). Session memory
+// so a reload keeps the thread; the facts still live on the twin, not here.
+export interface ConversationMessage {
+  id: string;
+  role: "USER" | "OLLIE";
+  text: string | null;
+  answer: OllieAnswer | null; // present on OLLIE turns, so the card rehydrates
+  at: string;
+}
