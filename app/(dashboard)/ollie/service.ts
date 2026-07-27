@@ -2,7 +2,7 @@
 
 import api from "@/lib/api";
 import { getCurrentUser } from "@/lib/auth";
-import type { AboutView, Declaration, OllieAnswer, ShortlistView } from "./types";
+import type { AboutView, ConversationMessage, Declaration, OllieAnswer, ShortlistView } from "./types";
 
 export type AskResult =
   | { ok: true; answer: OllieAnswer }
@@ -64,6 +64,19 @@ export async function getAbout(): Promise<AboutResult> {
     return { ok: false, message: res?.message ?? "Couldn't load your profile." };
   } catch {
     return { ok: false, message: "Couldn't load your profile." };
+  }
+}
+
+// GET /ollie/conversation — the learner's saved transcript, so a reload or return
+// keeps the thread. Returns [] on any failure so the chat still opens cleanly.
+export async function getConversation(): Promise<ConversationMessage[]> {
+  const user = await getCurrentUser();
+  if (!user) return [];
+  try {
+    const res = await api.get("ollie/conversation");
+    return res?.success && Array.isArray(res.data) ? (res.data as ConversationMessage[]) : [];
+  } catch {
+    return [];
   }
 }
 
