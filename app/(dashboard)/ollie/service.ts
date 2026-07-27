@@ -67,6 +67,18 @@ export async function getAbout(): Promise<AboutResult> {
   }
 }
 
+// POST /ollie/refresh — re-score the learner's matches after a profile change, so
+// the shortlist reflects the new preference. Best-effort; the panel then re-reads.
+export async function refreshMatches(): Promise<void> {
+  const user = await getCurrentUser();
+  if (!user) return;
+  try {
+    await api.post("ollie/refresh", {});
+  } catch {
+    // non-fatal — the panel will still re-read whatever is stored.
+  }
+}
+
 // GET /ollie/conversation — the learner's saved transcript, so a reload or return
 // keeps the thread. Returns [] on any failure so the chat still opens cleanly.
 export async function getConversation(): Promise<ConversationMessage[]> {

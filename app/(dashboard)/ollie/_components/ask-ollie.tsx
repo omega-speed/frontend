@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { use, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { askOllie, confirmDeclare, undoDeclare } from "../service";
 import type { ConversationMessage, Declaration, OllieAnswer } from "../types";
@@ -36,11 +36,14 @@ function seedTurns(messages: ConversationMessage[]): Turn[] {
 
 export function AskOllie({
   onActivity,
-  initialMessages = [],
+  conversationPromise,
 }: {
   onActivity?: () => void;
-  initialMessages?: ConversationMessage[];
+  conversationPromise: Promise<ConversationMessage[]>;
 }) {
+  // Unwrap the streamed transcript. `use()` suspends only this pane until it lands
+  // (the shortlist panel is already interactive), then seeds the thread once.
+  const initialMessages = use(conversationPromise);
   const [turns, setTurns] = useState<Turn[]>(() => seedTurns(initialMessages));
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
