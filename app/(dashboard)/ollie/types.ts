@@ -4,6 +4,7 @@ export type OllieIntent =
   | "MATCH_GUIDANCE"
   | "PROFILE_UPDATE"
   | "FUNDING"
+  | "ATHLETICS"
   | "PROFILE_REVIEW"
   | "GENERAL";
 
@@ -81,6 +82,8 @@ export interface ShortlistItem {
   category: string | null;
   reasons: string[];
   breakdown: ShortlistFactor[];
+  // Sports the learner cares about that this school also fields (Q-Athlete cross-ref).
+  athletics: { sport: string; division: string | null }[];
 }
 
 export interface ShortlistView {
