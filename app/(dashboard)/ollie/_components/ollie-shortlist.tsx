@@ -45,6 +45,21 @@ function Row({ item, index }: { item: ShortlistItem; index: number }) {
       </div>
       <p className="mt-0.5 text-xs text-muted-foreground">{item.program}</p>
 
+      {item.athletics?.length > 0 && (
+        <div className="mt-1.5 flex flex-wrap gap-1">
+          {item.athletics.map((a, i) => (
+            <span
+              key={i}
+              className="rounded-full px-2 py-0.5 text-[11px] font-medium"
+              style={{ background: WARM_SOFT, color: WARM }}
+            >
+              Also fields {a.sport}
+              {a.division ? ` · ${a.division}` : ""}
+            </span>
+          ))}
+        </div>
+      )}
+
       {item.reasons.length > 0 && (
         <ul className="mt-2 space-y-1">
           {item.reasons.map((r, i) => (
