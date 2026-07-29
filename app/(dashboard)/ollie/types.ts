@@ -6,6 +6,7 @@ export type OllieIntent =
   | "FUNDING"
   | "ATHLETICS"
   | "SCHOOL_INFO"
+  | "SHORTLIST_EDIT"
   | "PROFILE_REVIEW"
   | "GENERAL";
 

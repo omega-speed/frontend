@@ -17,6 +17,7 @@ const CONFIDENCE_NOTE: Record<string, string> = {
 // no glossy cards or accent rails — so the panel reads like a real advisor's
 // working list, not a generated grid.
 const CATEGORY: Record<string, { label: string; color: string }> = {
+  PINNED: { label: "Your pick", color: "var(--gold)" },
   FINANCIAL_SAFETY: { label: "Safety", color: "var(--win)" },
   LIKELY: { label: "Likely", color: "var(--win)" },
   TARGET: { label: "Target", color: "var(--primary)" },
