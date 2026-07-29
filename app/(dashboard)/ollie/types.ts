@@ -5,6 +5,7 @@ export type OllieIntent =
   | "PROFILE_UPDATE"
   | "FUNDING"
   | "ATHLETICS"
+  | "SCHOOL_INFO"
   | "PROFILE_REVIEW"
   | "GENERAL";
 
