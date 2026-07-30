@@ -39,11 +39,12 @@ export function OllieIntakeForm({
         className="min-w-0 flex-1 rounded-2xl border border-border bg-card p-4 shadow-sm"
       >
         <p className="text-[11px] font-black uppercase text-primary">A few quick things to start your list</p>
+        <p className="mt-0.5 text-xs text-muted-foreground">Fill in what you know — any one of these is enough to get going.</p>
         <Form {...form}>
           <form onSubmit={submit} className="mt-3 space-y-3">
-            <ControlledInput name="field" label="Field of study" placeholder="e.g. Software engineering" />
-            <ControlledSelect name="degree" label="Degree level" placeholder="Choose one" values={DEGREES} />
-            <ControlledInput name="budget" label="Yearly budget (USD)" type="number" placeholder="e.g. 30000" />
+            <ControlledInput name="field" label="Field of study" placeholder="e.g. Software engineering" optional />
+            <ControlledSelect name="degree" label="Degree level" placeholder="Choose one" values={DEGREES} optional />
+            <ControlledInput name="budget" label="Yearly budget (USD)" type="number" placeholder="e.g. 30000" optional />
             <div className="flex items-center gap-2 pt-1">
               <Button type="submit" disabled={pending}>
                 {pending ? "Saving…" : "Start my shortlist"}
