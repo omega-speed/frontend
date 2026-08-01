@@ -74,9 +74,15 @@ export function AskOllie({
     try {
       const res = await askOllie(text);
       setTurns((t) => {
-        const next: Turn[] = [...t, res.ok ? { role: "ollie", answer: res.answer } : { role: "error", text: res.message }];
+        // If a newer answer no longer asks for the intake form, the essentials are
+        // in (told via chat) — retire any open form so it can't sit there forever.
+        const base: Turn[] =
+          res.ok && !res.answer.form
+            ? t.map((x) => (x.role === "form" && !x.resolved ? { ...x, resolved: true } : x))
+            : t;
+        const next: Turn[] = [...base, res.ok ? { role: "ollie", answer: res.answer } : { role: "error", text: res.message }];
         // Offer the quick form when Ollie needs several essentials — but never stack forms.
-        if (res.ok && res.answer.form && !t.some((x) => x.role === "form" && !x.resolved)) next.push({ role: "form" });
+        if (res.ok && res.answer.form && !base.some((x) => x.role === "form" && !x.resolved)) next.push({ role: "form" });
         return next;
       });
       // Refresh the panels only when the turn actually changed the profile (an
