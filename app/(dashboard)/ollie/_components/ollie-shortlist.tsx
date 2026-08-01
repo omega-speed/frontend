@@ -165,7 +165,7 @@ function ProgressStepper({ progress }: { progress: ShortlistView["progress"] }) 
 
 // The live shortlist. Refetches whenever `refreshKey` changes (after each chat
 // turn) so it tracks the conversation without ever putting schools in the chat.
-export function OllieShortlist({ refreshKey }: { refreshKey: number }) {
+export function OllieShortlist({ refreshKey, refreshing = false }: { refreshKey: number; refreshing?: boolean }) {
   const [view, setView] = useState<ShortlistView | null>(null);
   const [loading, startLoad] = useTransition();
 
@@ -176,6 +176,9 @@ export function OllieShortlist({ refreshKey }: { refreshKey: number }) {
     });
   }, [refreshKey]);
 
+  // Busy spans the WHOLE update: the backend re-score (refreshing) + the re-read
+  // (loading). Without covering the first part, the panel looks stuck for seconds.
+  const busy = refreshing || loading;
   const count = view?.ready ? view.options.length : 0;
 
   return (
@@ -184,20 +187,35 @@ export function OllieShortlist({ refreshKey }: { refreshKey: number }) {
         <p className="text-sm text-muted-foreground">
           {view?.ready ? (count > 0 ? `${count} school${count === 1 ? "" : "s"}` : "Nothing to show yet") : "Building as we talk"}
         </p>
-        {loading && (
-          <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-            <span className="size-1.5 animate-pulse rounded-full bg-primary" />
+        {busy && (
+          <span className="flex items-center gap-1.5 text-[11px] font-medium" style={{ color: WARM }}>
+            <span className="size-1.5 animate-pulse rounded-full" style={{ background: WARM }} />
             updating
           </span>
         )}
       </header>
 
       <div className="flex-1 overflow-y-auto">
+        {/* The update in progress — loud enough that the list never looks stuck */}
+        {busy && view && (
+          <div
+            className="mx-5 mt-4 flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-sm font-medium"
+            style={{ background: WARM_SOFT, color: WARM }}
+          >
+            <span className="flex gap-1" aria-hidden>
+              <span className="size-1.5 animate-bounce rounded-full [animation-delay:0ms]" style={{ background: WARM }} />
+              <span className="size-1.5 animate-bounce rounded-full [animation-delay:150ms]" style={{ background: WARM }} />
+              <span className="size-1.5 animate-bounce rounded-full [animation-delay:300ms]" style={{ background: WARM }} />
+            </span>
+            Reshaping your list with what you just told me…
+          </div>
+        )}
+
         {/* Not ready — a friendly momentum stepper */}
         {view && !view.ready && <ProgressStepper progress={view.progress} />}
 
         {/* A warm encouragement line once real schools are on the list */}
-        {view?.ready && count > 0 && (
+        {view?.ready && count > 0 && !busy && (
           <div
             className="mx-5 mt-4 rounded-xl px-3.5 py-2.5 text-sm font-medium"
             style={{ background: WARM_SOFT, color: WARM }}
@@ -218,7 +236,7 @@ export function OllieShortlist({ refreshKey }: { refreshKey: number }) {
         {/* The list */}
         <AnimatePresence>
           {view?.ready && view.options.length > 0 && (
-            <ul>
+            <ul className={`transition-opacity duration-300 ${busy ? "opacity-40" : "opacity-100"}`}>
               {view.options.map((item, i) => (
                 <Row key={item.optionId} item={item} index={i} />
               ))}

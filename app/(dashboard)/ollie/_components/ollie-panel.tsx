@@ -8,7 +8,7 @@ type Tab = "shortlist" | "about";
 
 // The right-hand panel: a tab for the live shortlist and one for "About you".
 // Both refetch when `refreshKey` changes (after each chat turn).
-export function OlliePanel({ refreshKey }: { refreshKey: number }) {
+export function OlliePanel({ refreshKey, refreshing = false }: { refreshKey: number; refreshing?: boolean }) {
   const [tab, setTab] = useState<Tab>("shortlist");
 
   return (
@@ -29,7 +29,7 @@ export function OlliePanel({ refreshKey }: { refreshKey: number }) {
         ))}
       </div>
       <div className="min-h-0 flex-1">
-        {tab === "shortlist" ? <OllieShortlist refreshKey={refreshKey} /> : <OllieAbout refreshKey={refreshKey} />}
+        {tab === "shortlist" ? <OllieShortlist refreshKey={refreshKey} refreshing={refreshing} /> : <OllieAbout refreshKey={refreshKey} />}
       </div>
     </div>
   );

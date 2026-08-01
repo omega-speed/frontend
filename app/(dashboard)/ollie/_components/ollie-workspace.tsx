@@ -23,9 +23,17 @@ function ChatLoading() {
 // transcript is passed as a PROMISE and streamed, so the shell never blocks on it.
 export function OllieWorkspace({ conversationPromise }: { conversationPromise: Promise<ConversationMessage[]> }) {
   const [refreshKey, setRefreshKey] = useState(0);
+  // True while the backend re-scores + rebuilds the portfolio — the slow window
+  // where the panel would otherwise sit unchanged and look stuck.
+  const [refreshing, setRefreshing] = useState(false);
   const bump = useCallback(async () => {
-    await refreshMatches(); // re-score against the updated profile…
-    setRefreshKey((k) => k + 1); // …then have the panel re-read it.
+    setRefreshing(true);
+    try {
+      await refreshMatches(); // re-score against the updated profile…
+      setRefreshKey((k) => k + 1); // …then have the panel re-read it.
+    } finally {
+      setRefreshing(false);
+    }
   }, []);
 
   return (
@@ -36,7 +44,7 @@ export function OllieWorkspace({ conversationPromise }: { conversationPromise: P
         </Suspense>
       </div>
       <aside className="hidden w-90 shrink-0 border-l border-border lg:block xl:w-100">
-        <OlliePanel refreshKey={refreshKey} />
+        <OlliePanel refreshKey={refreshKey} refreshing={refreshing} />
       </aside>
     </div>
   );
