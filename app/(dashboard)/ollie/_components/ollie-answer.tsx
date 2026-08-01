@@ -81,10 +81,12 @@ export function OllieAnswerCard({ answer }: { answer: OllieAnswer }) {
 
         <OllieReasoning answer={answer} />
 
-        {synthesis.confidence && (
+        {/* When the voice spoke, the caveat is folded into the reply itself — the
+            template line under every message was pure repetition. */}
+        {!spoken && synthesis.confidence && (
           <div className="border-t border-border pt-3">
             <p className="text-xs text-muted-foreground">{synthesis.confidence}</p>
-            {!spoken && synthesis.nextAction && (
+            {synthesis.nextAction && (
               <p className="mt-1 text-xs font-medium text-foreground">{synthesis.nextAction}</p>
             )}
           </div>

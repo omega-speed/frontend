@@ -214,13 +214,13 @@ export function OllieShortlist({ refreshKey, refreshing = false }: { refreshKey:
         {/* Not ready — a friendly momentum stepper */}
         {view && !view.ready && <ProgressStepper progress={view.progress} />}
 
-        {/* A warm encouragement line once real schools are on the list */}
+        {/* Ollie's one-line read on the list (AI-written; static fallback) */}
         {view?.ready && count > 0 && !busy && (
           <div
             className="mx-5 mt-4 rounded-xl px-3.5 py-2.5 text-sm font-medium"
             style={{ background: WARM_SOFT, color: WARM }}
           >
-            Your list is taking shape — tell me more and I&apos;ll sharpen it.
+            {view.note ?? "Your list is taking shape — tell me more and I'll sharpen it."}
           </div>
         )}
 

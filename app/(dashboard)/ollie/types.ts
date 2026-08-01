@@ -93,6 +93,8 @@ export interface ShortlistView {
   needs: string[];
   progress: { field: boolean; degree: boolean; budget: boolean };
   options: ShortlistItem[];
+  // AI-written one-line read on the list as a whole (replaces the static banner).
+  note?: string;
 }
 
 // "About you" (GET /ollie/about) — what Ollie knows, split into what's shaping the
