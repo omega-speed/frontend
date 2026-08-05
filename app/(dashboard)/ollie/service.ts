@@ -2,7 +2,7 @@
 
 import api from "@/lib/api";
 import { getCurrentUser } from "@/lib/auth";
-import type { AboutView, ConversationMessage, Declaration, OllieAnswer, ShortlistView } from "./types";
+import type { AboutView, ConversationMessage, Declaration, FundingView, JourneyView, OllieAnswer, ShortlistView } from "./types";
 
 export type AskResult =
   | { ok: true; answer: OllieAnswer }
@@ -49,6 +49,36 @@ export async function getShortlist(): Promise<ShortlistResult> {
     return { ok: false, message: res?.message ?? "Couldn't load your shortlist." };
   } catch {
     return { ok: false, message: "Couldn't load your shortlist." };
+  }
+}
+
+// GET /ollie/funding — the learner's top assessed awards for the Funding tab.
+export type FundingResult = { ok: true; view: FundingView } | { ok: false; message: string };
+
+export async function getFunding(): Promise<FundingResult> {
+  const user = await getCurrentUser();
+  if (!user) return { ok: false, message: "Please sign in again." };
+  try {
+    const res = await api.get("ollie/funding");
+    if (res?.success && res.data) return { ok: true, view: res.data as FundingView };
+    return { ok: false, message: res?.message ?? "Couldn't load your funding picks." };
+  } catch {
+    return { ok: false, message: "Couldn't load your funding picks." };
+  }
+}
+
+// GET /ollie/journey — the dated timeline: deadlines + do-now tasks.
+export type JourneyResult = { ok: true; view: JourneyView } | { ok: false; message: string };
+
+export async function getJourney(): Promise<JourneyResult> {
+  const user = await getCurrentUser();
+  if (!user) return { ok: false, message: "Please sign in again." };
+  try {
+    const res = await api.get("ollie/journey");
+    if (res?.success && res.data) return { ok: true, view: res.data as JourneyView };
+    return { ok: false, message: res?.message ?? "Couldn't load your plan." };
+  } catch {
+    return { ok: false, message: "Couldn't load your plan." };
   }
 }
 

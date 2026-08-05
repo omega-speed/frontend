@@ -22,6 +22,14 @@ export default function layout({ children }: { children: ReactNode }) {
           </span>
           <span className="text-sm font-black uppercase tracking-[0.28em] text-primary">Qoollege</span>
         </Link>
+        <nav className="ml-5 flex items-center gap-4 text-sm">
+          <Link href="/ollie" className="text-muted-foreground transition-colors hover:text-foreground">
+            Ollie
+          </Link>
+          <Link href="/schools" className="text-muted-foreground transition-colors hover:text-foreground">
+            Schools
+          </Link>
+        </nav>
         <div className="ml-auto flex items-center gap-4">
           <Suspense fallback={<Skeleton className="h-8 w-28" />}>
             <UserProfile />

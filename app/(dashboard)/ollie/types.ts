@@ -79,6 +79,8 @@ export interface ShortlistFactor {
 // The side shortlist (GET /ollie/shortlist) — schools + why, shown in the panel.
 export interface ShortlistItem {
   optionId: string;
+  // Links the row to its school page (/schools/[id]); null if unresolved.
+  institutionId: string | null;
   institution: string;
   program: string;
   category: string | null;
@@ -95,6 +97,47 @@ export interface ShortlistView {
   options: ShortlistItem[];
   // AI-written one-line read on the list as a whole (replaces the static banner).
   note?: string;
+}
+
+// One assessed award on the Funding tab (GET /ollie/funding).
+export interface FundingAward {
+  id: string;
+  name: string;
+  sponsor: string;
+  amountMin: number | null;
+  amountMax: number | null;
+  deadline: string | null;
+  outcome: string;
+  priority: string;
+  expectedValue: number | null;
+  why: string[];
+  openQuestions: string[];
+  schoolTied: string | null;
+  renewable: boolean | null;
+  url: string | null;
+}
+export interface FundingView {
+  ready: boolean;
+  awards: FundingAward[];
+}
+
+// The journey: one dated timeline of school deadlines, funding deadlines, and
+// do-now tasks (GET /ollie/journey).
+export interface JourneyItem {
+  kind: "DEADLINE" | "FUNDING" | "TASK";
+  date: string | null; // yyyy-mm-dd; null for do-anytime tasks
+  projected: boolean; // rolled forward from a past cycle — verify with the school
+  school: string | null;
+  institutionId: string | null;
+  title: string;
+  detail: string;
+  urgent: boolean;
+}
+
+export interface JourneyView {
+  ready: boolean;
+  focus: { institutionId: string; name: string; pinned: boolean }[];
+  items: JourneyItem[];
 }
 
 // "About you" (GET /ollie/about) — what Ollie knows, split into what's shaping the

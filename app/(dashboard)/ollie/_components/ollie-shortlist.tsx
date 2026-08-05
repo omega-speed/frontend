@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
+import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { getShortlist } from "../service";
 import type { ShortlistItem, ShortlistView } from "../types";
@@ -38,7 +39,15 @@ function Row({ item, index }: { item: ShortlistItem; index: number }) {
       className="border-b border-border/70 px-5 py-4 last:border-b-0"
     >
       <div className="flex items-baseline justify-between gap-3">
-        <h3 className="text-[15px] font-semibold leading-snug text-foreground">{item.institution}</h3>
+        <h3 className="text-[15px] font-semibold leading-snug text-foreground">
+          {item.institutionId ? (
+            <Link href={`/schools/${item.institutionId}`} className="transition-colors hover:text-primary">
+              {item.institution}
+            </Link>
+          ) : (
+            item.institution
+          )}
+        </h3>
         <span className="flex shrink-0 items-center gap-1.5 text-[11px] font-semibold" style={{ color: c.color }}>
           <span className="size-1.5 rounded-full" style={{ background: c.color }} aria-hidden />
           {c.label}
