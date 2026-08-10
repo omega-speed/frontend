@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { getFunding } from "../service";
 import type { FundingAward, FundingView } from "../types";
 import { WARM, WARM_SOFT } from "./ollie-theme";
+import { PanelEmpty, PanelListSkeleton } from "./panel-bits";
 
 // Outcome → a quiet colour cue, same language as the shortlist.
 const OUTCOME: Record<string, { label: string; color: string }> = {
@@ -126,9 +127,11 @@ export function OllieFunding({ refreshKey, refreshing = false }: { refreshKey: n
         )}
 
         {view && count === 0 && !busy && (
-          <p className="px-5 py-6 text-sm leading-relaxed text-muted-foreground">
-            Tell me about yourself in the chat — your field, level, GPA, home state — and I&apos;ll surface scholarships you can actually get.
-          </p>
+          <PanelEmpty
+            title="No scholarships matched yet"
+            body="Tell me about yourself in the chat — field, level, GPA, home state — and I'll surface awards you can actually get."
+            hint="what scholarships can help me pay?"
+          />
         )}
 
         <AnimatePresence>
@@ -141,7 +144,7 @@ export function OllieFunding({ refreshKey, refreshing = false }: { refreshKey: n
           )}
         </AnimatePresence>
 
-        {!view && busy && <div className="px-5 py-6 text-sm text-muted-foreground">Checking the scholarship catalog…</div>}
+        {!view && busy && <PanelListSkeleton rows={4} />}
       </div>
     </div>
   );

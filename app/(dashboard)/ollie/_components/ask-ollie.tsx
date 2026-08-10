@@ -173,7 +173,7 @@ export function AskOllie({
       <div
         aria-hidden
         className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-72"
-        style={{ background: "radial-gradient(60% 100% at 50% 0%, rgba(255,122,92,0.10), transparent)" }}
+        style={{ background: "radial-gradient(60% 100% at 50% 0%, color-mix(in oklab, var(--brand) 9%, transparent), transparent)" }}
       />
       <div className="flex-1 overflow-y-auto">
         {empty ? (
@@ -187,13 +187,13 @@ export function AskOllie({
               <div
                 aria-hidden
                 className="absolute left-1/2 top-1/2 -z-10 size-64 -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl"
-                style={{ background: "radial-gradient(circle, rgba(255,122,92,0.30), rgba(109,94,252,0.16), transparent 70%)" }}
+                style={{ background: "radial-gradient(circle, color-mix(in oklab, var(--brand) 30%, transparent), color-mix(in oklab, oklch(0.66 0.24 320) 18%, transparent), transparent 70%)" }}
               />
               <OllieMark size={64} />
             </div>
             <h1 className="mt-5 text-2xl font-semibold leading-tight text-foreground text-balance sm:text-3xl">
               Hey — I&apos;m{" "}
-              <span className="bg-linear-to-r from-primary to-[#6d5efc] bg-clip-text text-transparent">Ollie</span>.
+              <span className="bg-linear-to-r from-primary to-[oklch(0.66_0.24_320)] bg-clip-text text-transparent">Ollie</span>.
               Let&apos;s find where you belong.
             </h1>
             <p className="mt-3 max-w-md text-sm leading-relaxed text-muted-foreground">
@@ -227,13 +227,13 @@ export function AskOllie({
               >
                 {turn.role === "user" ? (
                   <div className="flex justify-end">
-                    <div className="max-w-[85%] rounded-2xl rounded-br-md bg-primary/10 px-3.5 py-2 text-sm leading-relaxed">
+                    <div className="max-w-[85%] rounded-3xl rounded-br-lg bg-primary px-4 py-2.5 text-sm leading-relaxed text-primary-foreground shadow-[0_4px_16px_-6px_color-mix(in_oklab,var(--brand)_45%,transparent)]">
                       {turn.text}
                     </div>
                   </div>
                 ) : turn.role === "ollie" ? (
                   <div className="space-y-3">
-                    <OllieAnswerCard answer={turn.answer} />
+                    <OllieAnswerCard answer={turn.answer} fresh={!turn.resolved} />
                     {/* SENSITIVE change — explicit confirm */}
                     {turn.answer.proposals && turn.answer.proposals.length > 0 && !turn.resolved && (
                       <div className="flex gap-2 pl-10">
@@ -309,7 +309,7 @@ export function AskOllie({
           }}
           className="mx-auto w-full max-w-3xl"
         >
-          <div className="flex items-end gap-2 rounded-[1.6rem] border border-border bg-card px-4 py-2.5 shadow-[0_2px_16px_-6px_rgba(30,25,15,0.14)] transition-all focus-within:border-primary/60 focus-within:shadow-[0_8px_28px_-8px_rgba(43,69,204,0.28)]">
+          <div className="glossy flex items-end gap-2 rounded-full border border-border bg-card px-4 py-2.5 shadow-[0_2px_16px_-6px_color-mix(in_oklab,var(--brand)_20%,transparent)] transition-all duration-300 focus-within:border-primary/60 focus-within:shadow-[0_8px_28px_-8px_color-mix(in_oklab,var(--brand)_35%,transparent)]">
             <textarea
               ref={inputRef}
               value={input}
@@ -331,7 +331,7 @@ export function AskOllie({
               type="submit"
               disabled={busy || !input.trim()}
               aria-label="Send"
-              style={{ background: "linear-gradient(135deg, var(--primary), #6d5efc)" }}
+              style={{ background: "linear-gradient(135deg, var(--primary), oklch(0.66 0.24 320))" }}
               className="mb-0.5 flex size-9 shrink-0 items-center justify-center rounded-full text-primary-foreground shadow-md transition-all hover:scale-105 hover:shadow-lg disabled:scale-100 disabled:opacity-30"
             >
               <svg

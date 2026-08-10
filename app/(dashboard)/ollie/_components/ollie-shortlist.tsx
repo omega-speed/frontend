@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { getShortlist } from "../service";
 import type { ShortlistItem, ShortlistView } from "../types";
 import { WARM, WARM_SOFT } from "./ollie-theme";
+import { PanelListSkeleton } from "./panel-bits";
 
 // LOW-confidence factors are honest estimates; flag them quietly.
 const CONFIDENCE_NOTE: Record<string, string> = {
@@ -276,7 +277,7 @@ export function OllieShortlist({ refreshKey, refreshing = false }: { refreshKey:
 
         {/* First load, nothing yet */}
         {!view && loading && (
-          <div className="px-5 py-6 text-sm text-muted-foreground">Pulling your shortlist together…</div>
+          <PanelListSkeleton rows={4} />
         )}
       </div>
     </div>

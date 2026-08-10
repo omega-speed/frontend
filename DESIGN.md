@@ -2,11 +2,11 @@
 
 ## Identity
 - **Font**: Nunito — warm, humanist, highly legible. Set in `app/layout.tsx`; keep the `--font-sans` variable name.
-- **Base**: light **warm ivory paper** with warm ink text — neutrals are warm-tinted, never cold slate.
-- **Brand color**: a confident **cobalt blue**. It lives in **one** token — `--brand` in `globals.css` (with `--brand-foreground`, the ink on top of it). Change `--brand` to rebrand the whole app (e.g. to pink) in one line; it feeds `--primary`, `--ring`, `--gold`, `--social`, and the sidebar primary.
-- **Radius**: rounded, set once via `--radius` in `globals.css` (feeds the whole `rounded-*` scale). Don't hard-code radii on elements — change the token.
+- **Base**: light **violet-tinted paper** with soft ink text — neutrals carry a whisper of purple, never cold slate.
+- **Brand color**: a confident **glossy purple**. It lives in **one** token — `--brand` in `globals.css` (with `--brand-foreground`, the ink on top of it). Change `--brand` to rebrand the whole app in one line; it feeds `--primary`, `--ring`, `--gold`, `--social`, and the sidebar primary.
+- **Radius**: well-rounded, set once via `--radius` (1.05rem) in `globals.css` (feeds the whole `rounded-*` scale). **Controls (buttons, inputs, chips, tabs) are full pills** (`rounded-full`) — baked into the base components; don't hard-code radii elsewhere.
 - **Composition**: a floating rounded card with depth. Showcase surfaces (auth) pair a solid **brand-color panel** (real copy + domain chips + a faint dot texture) with the form — designed and branded, never Lorem filler or a bare centered form.
-- **Restraint (avoid the "vibe-coded" look)**: no decorative icons or emoji (the password-reveal eye is the one justified, universal exception); no gradients or glows; lean on type hierarchy and space.
+- **Restraint (avoid the "vibe-coded" look)**: no decorative icons or emoji (the password-reveal eye is the one justified, universal exception). Gloss is allowed ONLY through the sanctioned utilities — `.glossy` (top sheen on premium cards), `.glow-primary` (brand-tinted glow), `.cta-btn` (sweep sheen) — never ad-hoc gradients. Motion is smooth and soft: 200–350ms, `cubic-bezier(0.22, 1, 0.36, 1)`, fade + small translate; never bouncy.
 
 ## Form & Label Conventions
 
@@ -87,7 +87,8 @@ Use for grids and lists that benefit from a staggered entrance (60ms per item, f
 
 | Class             | Effect                                                     |
 |-------------------|------------------------------------------------------------|
-| `.glow-primary`   | Soft box-shadow glow — use on featured/highlighted cards   |
+| `.glow-primary`   | Brand-tinted glow — use on featured/highlighted cards      |
+| `.glossy`         | Top sheen + brand-tinted depth — premium cards only        |
 | `.hover-lift`     | `translateY(-2px)` + shadow on hover, 200ms ease           |
 | `.inset-highlight`| Subtle top-edge inner highlight via `::before`; sets `position: relative` |
 | `.corner-accent-box` | Applied by `<CornerAccents />` — do not use directly     |

@@ -57,60 +57,60 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-/* Light editorial theme: warm ivory paper, warm ink, one confident cobalt accent.
-   To rebrand the whole app, change ONE value: --brand (and --brand-foreground,
-   the readable ink on top of it). It feeds --primary, --ring, --gold, --social,
-   and the sidebar primary — so switching to e.g. pink is a one-line change. */
+/* Light glossy theme: violet-tinted paper, soft ink, one confident glossy
+   PURPLE accent. To rebrand the whole app, change ONE value: --brand (and
+   --brand-foreground, the readable ink on top of it). It feeds --primary,
+   --ring, --gold, --social, and the sidebar primary. */
 :root {
-  --brand: oklch(0.48 0.16 258);
-  --brand-foreground: oklch(0.98 0.01 255);
+  --brand: oklch(0.51 0.21 303);
+  --brand-foreground: oklch(0.98 0.008 300);
 
-  --background: oklch(0.975 0.006 90);
-  --foreground: oklch(0.24 0.012 62);
-  --card: oklch(0.995 0.003 90);
-  --card-foreground: oklch(0.24 0.012 62);
-  --popover: oklch(0.995 0.003 90);
-  --popover-foreground: oklch(0.24 0.012 62);
+  --background: oklch(0.976 0.008 300);
+  --foreground: oklch(0.24 0.02 300);
+  --card: oklch(0.995 0.004 300);
+  --card-foreground: oklch(0.24 0.02 300);
+  --popover: oklch(0.995 0.004 300);
+  --popover-foreground: oklch(0.24 0.02 300);
   --primary: var(--brand);
   --primary-foreground: var(--brand-foreground);
-  --secondary: oklch(0.94 0.006 88);
-  --secondary-foreground: oklch(0.24 0.012 62);
-  --muted: oklch(0.94 0.006 88);
-  --muted-foreground: oklch(0.5 0.01 70);
-  --accent: oklch(0.93 0.02 258);
-  --accent-foreground: oklch(0.24 0.012 62);
+  --secondary: oklch(0.945 0.012 300);
+  --secondary-foreground: oklch(0.24 0.02 300);
+  --muted: oklch(0.945 0.012 300);
+  --muted-foreground: oklch(0.5 0.025 300);
+  --accent: oklch(0.94 0.035 303);
+  --accent-foreground: oklch(0.24 0.02 300);
   --destructive: oklch(0.55 0.2 27);
-  --border: oklch(0.88 0.006 82);
-  --input: oklch(0.88 0.006 82);
+  --border: oklch(0.89 0.015 300);
+  --input: oklch(0.89 0.015 300);
   --ring: var(--brand);
   --chart-1: var(--brand);
-  --chart-2: oklch(0.62 0.11 250);
-  --chart-3: oklch(0.72 0.05 80);
-  --chart-4: oklch(0.55 0.02 70);
-  --chart-5: oklch(0.4 0.02 62);
-  --radius: 0.7rem;
-  --sidebar: oklch(0.96 0.006 88);
-  --sidebar-foreground: oklch(0.24 0.012 62);
+  --chart-2: oklch(0.62 0.14 320);
+  --chart-3: oklch(0.72 0.06 290);
+  --chart-4: oklch(0.55 0.03 300);
+  --chart-5: oklch(0.4 0.03 300);
+  --radius: 1.05rem; /* well-rounded — pills on controls come from the components */
+  --sidebar: oklch(0.962 0.01 300);
+  --sidebar-foreground: oklch(0.24 0.02 300);
   --sidebar-primary: var(--brand);
   --sidebar-primary-foreground: var(--brand-foreground);
-  --sidebar-accent: oklch(0.94 0.006 88);
-  --sidebar-accent-foreground: oklch(0.24 0.012 62);
-  --sidebar-border: oklch(0.88 0.006 82);
+  --sidebar-accent: oklch(0.945 0.012 300);
+  --sidebar-accent-foreground: oklch(0.24 0.02 300);
+  --sidebar-border: oklch(0.89 0.015 300);
   --sidebar-ring: var(--brand);
   --gold:   var(--brand);
   --win:    oklch(0.55 0.13 150);
   --loss:   oklch(0.55 0.2 27);
   --social: var(--brand);
-  --bg-deep:    oklch(0.955 0.006 90);
+  --bg-deep:    oklch(0.956 0.01 300);
   --card-hi:    oklch(1 0 0);
-  --primary-hi: oklch(0.42 0.16 258);
-  --border-hi:  oklch(0.8 0.008 82);
-  --faint:      oklch(0.72 0.008 82);
+  --primary-hi: oklch(0.45 0.21 303);
+  --border-hi:  oklch(0.82 0.02 300);
+  --faint:      oklch(0.72 0.015 300);
 }
 
 .dark {
-  --brand: oklch(0.8 0.128 82);
-  --brand-foreground: oklch(0.2 0.02 70);
+  --brand: oklch(0.74 0.17 303);
+  --brand-foreground: oklch(0.17 0.03 300);
 
   --background: oklch(0.17 0.006 70);
   --foreground: oklch(0.95 0.006 85);
@@ -207,11 +207,22 @@
 
   /* Premium micro-interactions */
   .glow-primary {
-    box-shadow: 0 0 0 1px oklch(1 0 0 / 0.12),
-                0 4px 24px oklch(1 0 0 / 0.06);
+    box-shadow: 0 0 0 1px color-mix(in oklab, var(--brand) 18%, transparent),
+                0 6px 28px color-mix(in oklab, var(--brand) 14%, transparent);
+  }
+  /* The sanctioned gloss: a faint top sheen + brand-tinted depth. Use on cards
+     that deserve the premium read — never stack with busy content. */
+  .glossy {
+    background-image: linear-gradient(
+      to bottom,
+      color-mix(in oklab, var(--card-hi) 65%, transparent),
+      transparent 38%
+    );
+    box-shadow: 0 1px 0 color-mix(in oklab, var(--card-hi) 80%, transparent) inset,
+                0 10px 30px -18px color-mix(in oklab, var(--brand) 35%, transparent);
   }
   .hover-lift {
-    transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
+    transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 260ms cubic-bezier(0.22, 1, 0.36, 1), border-color 260ms ease;
   }
   .hover-lift:hover {
     transform: translateY(-2px);

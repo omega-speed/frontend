@@ -2,10 +2,12 @@
 
 import { motion } from "framer-motion";
 
-// Ollie's mark — a living gradient orb (cobalt → indigo), not a static icon. It
-// breathes gently, and pulses faster while thinking. This is Ollie's face; the
-// one place we let the identity be vivid.
-const GRADIENT = "linear-gradient(135deg, var(--primary), #6d5efc)";
+import { OLLIE_GRADIENT } from "./ollie-theme";
+
+// Ollie's mark — a living gradient orb (purple → violet-pink), not a static
+// icon. It breathes gently, and pulses faster while thinking. This is Ollie's
+// face; the one place we let the identity be vivid.
+const GRADIENT = OLLIE_GRADIENT;
 
 export function OllieMark({ thinking = false, size = 28 }: { thinking?: boolean; size?: number }) {
   return (

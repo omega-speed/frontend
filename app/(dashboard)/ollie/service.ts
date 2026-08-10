@@ -141,30 +141,16 @@ export type ApplicationsResult =
   | { ok: true; applications: import("./types").TrackedApplication[] }
   | { ok: false; message: string };
 
-// The learner's tracked applications with per-application readiness — the
-// honest state ("on track / at risk / blocked"), never a chance of admission.
+// The learner's tracked applications with readiness and school names — ONE
+// backend call (GET /ollie/applications); the backend composes Q-Admit +
+// institution names server-side.
 export async function getApplications(): Promise<ApplicationsResult> {
   const user = await getCurrentUser();
   if (!user) return { ok: false, message: "Please sign in again." };
   try {
-    const list = await api.get(`q-admit/learners/${user.id}/applications?limit=10`);
-    if (!list?.success) return { ok: false, message: list?.message ?? "Couldn't load your applications." };
-    const rows = (list.data ?? []) as import("./types").ApplicationSummary[];
-    const applications = await Promise.all(
-      rows.map(async (row) => {
-        const [detail, readiness, school] = await Promise.all([
-          api.get(`q-admit/applications/${row.id}`),
-          api.get(`q-admit/applications/${row.id}/readiness`),
-          api.get(`schools/${row.institutionId}`),
-        ]);
-        return {
-          application: (detail?.data ?? row) as import("./types").ApplicationDetail,
-          readiness: (readiness?.success ? readiness.data : null) as import("./types").ApplicationReadiness | null,
-          school: (school?.data?.name ?? school?.data?.officialName ?? "A school") as string,
-        };
-      }),
-    );
-    return { ok: true, applications };
+    const res = await api.get("ollie/applications");
+    if (res?.success) return { ok: true, applications: (res.data ?? []) as import("./types").TrackedApplication[] };
+    return { ok: false, message: res?.message ?? "Couldn't load your applications." };
   } catch {
     return { ok: false, message: "Couldn't load your applications." };
   }

@@ -3,6 +3,7 @@
 import type { OllieAnswer } from "../types";
 import { OllieMark } from "./ollie-mark";
 import { OllieReasoning } from "./ollie-reasoning";
+import { TypeReveal } from "./type-reveal";
 
 function Section({ label, tone = "muted", children }: { label: string; tone?: "muted" | "gold"; children: React.ReactNode }) {
   return (
@@ -13,7 +14,7 @@ function Section({ label, tone = "muted", children }: { label: string; tone?: "m
   );
 }
 
-export function OllieAnswerCard({ answer }: { answer: OllieAnswer }) {
+export function OllieAnswerCard({ answer, fresh = false }: { answer: OllieAnswer; fresh?: boolean }) {
   const { synthesis } = answer;
   const spoken = answer.voice?.trim();
 
@@ -21,20 +22,22 @@ export function OllieAnswerCard({ answer }: { answer: OllieAnswer }) {
     <div className="flex items-start gap-3">
       <OllieMark />
       <div className="min-w-0 flex-1 space-y-4">
-        <span className="bg-linear-to-r from-primary to-[#6d5efc] bg-clip-text text-[11px] font-black uppercase text-transparent">
+        <span className="bg-linear-to-r from-primary to-[oklch(0.66_0.24_320)] bg-clip-text text-[11px] font-black uppercase text-transparent">
           Ollie
         </span>
 
         {spoken ? (
           <div className="space-y-2 text-[15px] leading-relaxed text-foreground">
             {spoken.split(/\n{2,}/).map((para, i) => (
-              <p key={i}>{para}</p>
+              <p key={i}>{fresh ? <TypeReveal text={para} /> : para}</p>
             ))}
           </div>
         ) : (
           <>
             <div className="space-y-2">
-              <p className="text-[15px] font-semibold leading-snug text-foreground">{synthesis.directAnswer}</p>
+              <p className="text-[15px] font-semibold leading-snug text-foreground">
+                {fresh ? <TypeReveal text={synthesis.directAnswer} /> : synthesis.directAnswer}
+              </p>
               {synthesis.whyItMatters && (
                 <p className="text-sm leading-relaxed text-muted-foreground">{synthesis.whyItMatters}</p>
               )}

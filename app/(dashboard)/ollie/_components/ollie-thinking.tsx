@@ -9,10 +9,11 @@ import { OllieMark } from "./ollie-mark";
 // in flight. These are honest activity labels, not fabricated reasoning — the
 // specific reasoning is revealed on the answer itself once it returns.
 const PHASES = [
-  "Reading your message",
-  "Checking what I already know about you",
-  "Thinking it through",
-  "Putting your answer together",
+  "Reading what you said",
+  "Looking at what I know about you",
+  "Checking the right numbers for this",
+  "Weighing what fits you best",
+  "Writing back in plain words",
 ];
 
 export function OllieThinking() {

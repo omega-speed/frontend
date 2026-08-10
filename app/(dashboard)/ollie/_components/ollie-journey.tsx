@@ -8,6 +8,7 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import { getJourney } from "../service";
 import type { JourneyItem, JourneyView } from "../types";
 import { WARM, WARM_SOFT } from "./ollie-theme";
+import { PanelListSkeleton } from "./panel-bits";
 
 dayjs.extend(relativeTime);
 
@@ -120,7 +121,7 @@ export function OllieJourney({ refreshKey, refreshing = false }: { refreshKey: n
           </ul>
         )}
 
-        {!view && busy && <div className="px-5 py-6 text-sm text-muted-foreground">Stacking your deadlines…</div>}
+        {!view && busy && <PanelListSkeleton rows={4} />}
       </div>
     </div>
   );

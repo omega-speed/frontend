@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import dayjs from "dayjs";
 import { getApplications, syncApplication } from "../service";
 import type { TrackedApplication } from "../types";
+import { PanelEmpty, PanelListSkeleton } from "./panel-bits";
 
 // Readiness state → quiet colour cue, same language as the other tabs.
 // Operational truth only — never a chance of admission (QADMIT-READY-000009).
@@ -138,16 +139,14 @@ export function OllieApplications({ refreshKey }: { refreshKey: number }) {
   };
 
   if (error) return <p className="px-5 py-6 text-sm text-muted-foreground">{error}</p>;
-  if (apps === null) return <p className="px-5 py-6 text-sm text-muted-foreground">Loading your applications…</p>;
+  if (apps === null) return <PanelListSkeleton rows={3} />;
   if (apps.length === 0) {
     return (
-      <div className="px-5 py-6">
-        <p className="text-sm leading-relaxed text-muted-foreground">
-          You aren’t tracking any applications yet. Tell Ollie{" "}
-          <span className="font-semibold text-foreground">“start my application to &lt;school&gt;”</span> and the checklist
-          builds itself from what the school actually requires.
-        </p>
-      </div>
+      <PanelEmpty
+        title="No applications tracked yet"
+        body="When you start one, the checklist builds itself from what the school actually requires — deadlines, requirements, and what's left."
+        hint="start my application to NYU"
+      />
     );
   }
 

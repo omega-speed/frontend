@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
+import { PanelListSkeleton } from "./panel-bits";
 import { motion } from "framer-motion";
 import { getAbout } from "../service";
 import type { AboutFact, AboutView } from "../types";
@@ -43,7 +44,7 @@ export function OllieAbout({ refreshKey }: { refreshKey: number }) {
   return (
     <div className="flex h-full flex-col">
       <div className="flex-1 overflow-y-auto px-5 py-5">
-        {!view && loading && <p className="text-sm text-muted-foreground">Gathering what I know…</p>}
+        {!view && loading && <PanelListSkeleton rows={3} />}
 
         {empty && (
           <p className="text-sm leading-relaxed text-muted-foreground">
