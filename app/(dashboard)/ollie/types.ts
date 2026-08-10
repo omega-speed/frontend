@@ -7,6 +7,10 @@ export type OllieIntent =
   | "ATHLETICS"
   | "SCHOOL_INFO"
   | "SHORTLIST_EDIT"
+  | "APPLICATIONS"
+  | "ESSAY"
+  | "GLOBAL"
+  | "CAREER"
   | "PROFILE_REVIEW"
   | "GENERAL";
 
@@ -97,6 +101,10 @@ export interface ShortlistView {
   options: ShortlistItem[];
   // AI-written one-line read on the list as a whole (replaces the static banner).
   note?: string;
+  // OL-005: cross-domain tensions, both truths kept — never averaged into fake
+  // consensus — plus a human-escalation line for high-consequence conflicts.
+  conflicts?: { optionId: string | null; severity: "MODERATE" | "HIGH"; statement: string }[];
+  escalation?: string | null;
 }
 
 // One assessed award on the Funding tab (GET /ollie/funding).
@@ -173,4 +181,69 @@ export interface ConversationMessage {
   text: string | null;
   answer: OllieAnswer | null; // present on OLLIE turns, so the card rehydrates
   at: string;
+}
+
+// ---- Q-Admit: the learner's application trackers (QA-001…QA-003) ----
+
+export type ApplicationStatus =
+  | "PLANNING"
+  | "IN_PROGRESS"
+  | "READY"
+  | "SUBMITTED"
+  | "CONFIRMED"
+  | "DECIDED"
+  | "ENROLLED"
+  | "WITHDRAWN";
+
+export interface ApplicationSummary {
+  id: string;
+  institutionId: string;
+  programId: string | null;
+  cycle: string;
+  round: string | null;
+  status: ApplicationStatus;
+  statusReason: string | null;
+  createdAt: string;
+}
+
+export interface ApplicationRequirementRow {
+  id: string;
+  requirementKey: string;
+  requirementType: string;
+  status: "UNKNOWN" | "NOT_STARTED" | "IN_PROGRESS" | "COMPLETE" | "WAIVED" | "NOT_APPLICABLE";
+  mandatory: boolean;
+  detail: Record<string, unknown> | null;
+  dueAt: string | null;
+  confidence: string;
+}
+
+export interface ApplicationDeadlineRow {
+  id: string;
+  deadlineType: string;
+  dueAt: string;
+  timezone: string; // "UNKNOWN" when the source doesn't state one — treat as earlier than it looks
+  estimated: boolean;
+}
+
+export interface ApplicationDetail extends ApplicationSummary {
+  requirements: ApplicationRequirementRow[];
+  deadlines: ApplicationDeadlineRow[];
+}
+
+// GET /q-admit/applications/{id}/readiness — operational honesty, never a
+// chance of admission (QADMIT-READY-000009).
+export interface ApplicationReadiness {
+  applicationId: string;
+  overallState: "READY" | "ON_TRACK" | "AT_RISK" | "BLOCKED" | "SUBMITTED" | "INSUFFICIENT_DATA";
+  dimensions: Record<string, { state: string; note: string | null }>;
+  blockers: string[];
+  warnings: string[];
+  confidence: string;
+  evaluatedAt: string;
+}
+
+export interface TrackedApplication {
+  application: ApplicationDetail;
+  readiness: ApplicationReadiness | null;
+  school: string; // resolved institution name
 }

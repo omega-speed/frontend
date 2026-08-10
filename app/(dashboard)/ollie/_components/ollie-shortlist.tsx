@@ -253,6 +253,27 @@ export function OllieShortlist({ refreshKey, refreshing = false }: { refreshKey:
           )}
         </AnimatePresence>
 
+        {/* OL-005: honest cross-domain tensions — shown, never averaged away */}
+        {view?.ready && (view.conflicts?.length ?? 0) > 0 && (
+          <div className="border-t border-border/70 px-5 py-4">
+            <p className="text-[11px] font-black uppercase text-muted-foreground">Worth naming</p>
+            <div className="mt-2 flex flex-col gap-2">
+              {view.conflicts!.map((c) => (
+                <p
+                  key={`${c.optionId ?? "portfolio"}-${c.statement.slice(0, 24)}`}
+                  className="text-xs leading-relaxed"
+                  style={{ color: c.severity === "HIGH" ? "var(--loss)" : "var(--gold)" }}
+                >
+                  {c.statement}
+                </p>
+              ))}
+              {view.escalation && (
+                <p className="text-xs leading-relaxed text-muted-foreground">{view.escalation}</p>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* First load, nothing yet */}
         {!view && loading && (
           <div className="px-5 py-6 text-sm text-muted-foreground">Pulling your shortlist together…</div>

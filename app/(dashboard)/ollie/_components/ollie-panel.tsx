@@ -5,10 +5,12 @@ import { OllieShortlist } from "./ollie-shortlist";
 import { OllieFunding } from "./ollie-funding";
 import { OllieJourney } from "./ollie-journey";
 import { OllieAbout } from "./ollie-about";
+import { OllieApplications } from "./ollie-applications";
 
-type Tab = "shortlist" | "plan" | "funding" | "about";
+type Tab = "shortlist" | "applications" | "plan" | "funding" | "about";
 const TABS: { key: Tab; label: string }[] = [
   { key: "shortlist", label: "Shortlist" },
+  { key: "applications", label: "Applications" },
   { key: "plan", label: "Plan" },
   { key: "funding", label: "Funding" },
   { key: "about", label: "About you" },
@@ -39,6 +41,8 @@ export function OlliePanel({ refreshKey, refreshing = false }: { refreshKey: num
       <div className="min-h-0 flex-1">
         {tab === "shortlist" ? (
           <OllieShortlist refreshKey={refreshKey} refreshing={refreshing} />
+        ) : tab === "applications" ? (
+          <OllieApplications refreshKey={refreshKey} />
         ) : tab === "plan" ? (
           <OllieJourney refreshKey={refreshKey} refreshing={refreshing} />
         ) : tab === "funding" ? (

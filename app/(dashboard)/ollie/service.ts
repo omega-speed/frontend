@@ -134,3 +134,51 @@ export async function undoDeclare(declarations: Declaration[]): Promise<AskResul
     return { ok: false, message: "Couldn't undo that just now." };
   }
 }
+
+// ---- Q-Admit: application trackers (QA-001…QA-003) ----
+
+export type ApplicationsResult =
+  | { ok: true; applications: import("./types").TrackedApplication[] }
+  | { ok: false; message: string };
+
+// The learner's tracked applications with per-application readiness — the
+// honest state ("on track / at risk / blocked"), never a chance of admission.
+export async function getApplications(): Promise<ApplicationsResult> {
+  const user = await getCurrentUser();
+  if (!user) return { ok: false, message: "Please sign in again." };
+  try {
+    const list = await api.get(`q-admit/learners/${user.id}/applications?limit=10`);
+    if (!list?.success) return { ok: false, message: list?.message ?? "Couldn't load your applications." };
+    const rows = (list.data ?? []) as import("./types").ApplicationSummary[];
+    const applications = await Promise.all(
+      rows.map(async (row) => {
+        const [detail, readiness, school] = await Promise.all([
+          api.get(`q-admit/applications/${row.id}`),
+          api.get(`q-admit/applications/${row.id}/readiness`),
+          api.get(`schools/${row.institutionId}`),
+        ]);
+        return {
+          application: (detail?.data ?? row) as import("./types").ApplicationDetail,
+          readiness: (readiness?.success ? readiness.data : null) as import("./types").ApplicationReadiness | null,
+          school: (school?.data?.name ?? school?.data?.officialName ?? "A school") as string,
+        };
+      }),
+    );
+    return { ok: true, applications };
+  } catch {
+    return { ok: false, message: "Couldn't load your applications." };
+  }
+}
+
+// POST /q-admit/applications/{id}/sync — re-interpret the school's canonical
+// requirements/deadlines into this tracker (idempotent; learner progress kept).
+export async function syncApplication(applicationId: string): Promise<{ ok: boolean; message?: string }> {
+  const user = await getCurrentUser();
+  if (!user) return { ok: false, message: "Please sign in again." };
+  try {
+    const res = await api.post(`q-admit/applications/${applicationId}/sync`, {});
+    return res?.success ? { ok: true } : { ok: false, message: res?.message };
+  } catch {
+    return { ok: false, message: "Couldn't refresh from the school's data." };
+  }
+}

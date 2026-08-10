@@ -26,6 +26,12 @@ export default function layout({ children }: { children: ReactNode }) {
           <Link href="/ollie" className="text-muted-foreground transition-colors hover:text-foreground">
             Ollie
           </Link>
+          <Link href="/journey" className="text-muted-foreground transition-colors hover:text-foreground">
+            Journey
+          </Link>
+          <Link href="/essays" className="text-muted-foreground transition-colors hover:text-foreground">
+            Essays
+          </Link>
           <Link href="/schools" className="text-muted-foreground transition-colors hover:text-foreground">
             Schools
           </Link>
