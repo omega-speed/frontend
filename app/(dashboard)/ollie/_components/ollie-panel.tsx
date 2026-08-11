@@ -19,12 +19,20 @@ const TABS: { key: Tab; label: string }[] = [
 
 // The right-hand panel: the live shortlist, the money, and "About you".
 // All refetch when `refreshKey` changes (after each profile-changing turn).
-export function OlliePanel({ refreshKey, refreshing = false }: { refreshKey: number; refreshing?: boolean }) {
+export function OlliePanel({
+  refreshKey,
+  refreshing = false,
+}: {
+  refreshKey: number;
+  refreshing?: boolean;
+}) {
   const [tab, setTab] = useState<Tab>("shortlist");
   // Keep-alive tabs: a tab MOUNTS the first time it's opened and then stays
   // mounted (hidden) — switching back is instant, no refetch. Data still
   // refreshes when `refreshKey` changes (a real profile-changing turn).
-  const [visited, setVisited] = useState<Set<Tab>>(() => new Set(["shortlist"]));
+  const [visited, setVisited] = useState<Set<Tab>>(
+    () => new Set(["shortlist"]),
+  );
   const open = (t: Tab) => {
     setTab(t);
     setVisited((v) => (v.has(t) ? v : new Set(v).add(t)));
@@ -33,20 +41,27 @@ export function OlliePanel({ refreshKey, refreshing = false }: { refreshKey: num
   return (
     <div className="flex h-full flex-col">
       <div className="shrink-0 px-3 pt-3">
-        <div className="flex rounded-full bg-muted p-1">
+        <div className="flex justify-evenly rounded-full border border-primary/25 bg-primary/10 p-2 pt-1.5">
           {TABS.map((t) => (
             <button
               key={t.key}
               type="button"
               onClick={() => open(t.key)}
-              className={`relative flex-1 rounded-full px-2 py-1.5 text-[11px] font-black uppercase transition-colors duration-200 ${
-                tab === t.key ? "text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+              className={`relative flex-1 rounded-full p-1 text-[10px] font-black transition-[color,transform] duration-300 ${
+                tab === t.key
+                  ? "scale-[1.04] text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
               {tab === t.key && (
                 <motion.span
                   layoutId="ollie-panel-tab"
-                  transition={{ type: "spring", stiffness: 400, damping: 34 }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 300,
+                    damping: 30,
+                    mass: 0.7,
+                  }}
                   className="absolute inset-0 rounded-full bg-primary shadow-sm"
                   aria-hidden
                 />
@@ -57,26 +72,46 @@ export function OlliePanel({ refreshKey, refreshing = false }: { refreshKey: num
         </div>
       </div>
       <div className="min-h-0 flex-1">
-        <div hidden={tab !== "shortlist"} className="h-full">
+        <div
+          hidden={tab !== "shortlist"}
+          data-active={tab === "shortlist"}
+          className="panel-pane h-full"
+        >
           <OllieShortlist refreshKey={refreshKey} refreshing={refreshing} />
         </div>
         {visited.has("applications") && (
-          <div hidden={tab !== "applications"} className="h-full">
+          <div
+            hidden={tab !== "applications"}
+            data-active={tab === "applications"}
+            className="panel-pane h-full"
+          >
             <OllieApplications refreshKey={refreshKey} />
           </div>
         )}
         {visited.has("plan") && (
-          <div hidden={tab !== "plan"} className="h-full">
+          <div
+            hidden={tab !== "plan"}
+            data-active={tab === "plan"}
+            className="panel-pane h-full"
+          >
             <OllieJourney refreshKey={refreshKey} refreshing={refreshing} />
           </div>
         )}
         {visited.has("funding") && (
-          <div hidden={tab !== "funding"} className="h-full">
+          <div
+            hidden={tab !== "funding"}
+            data-active={tab === "funding"}
+            className="panel-pane h-full"
+          >
             <OllieFunding refreshKey={refreshKey} refreshing={refreshing} />
           </div>
         )}
         {visited.has("about") && (
-          <div hidden={tab !== "about"} className="h-full">
+          <div
+            hidden={tab !== "about"}
+            data-active={tab === "about"}
+            className="panel-pane h-full"
+          >
             <OllieAbout refreshKey={refreshKey} />
           </div>
         )}
