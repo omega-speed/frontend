@@ -18,8 +18,8 @@ type Turn =
 
 const SUGGESTIONS = [
   "Where should I apply?",
+  "I'm undecided — help me explore",
   "What can I afford?",
-  "I'm doing a master's in computer science",
   "What do you know about me?",
 ];
 

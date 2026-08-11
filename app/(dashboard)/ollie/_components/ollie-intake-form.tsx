@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Form } from "@/components/ui/form";
 import ControlledInput from "@/components/molecules/controlled-input";
 import ControlledSelect from "@/components/molecules/controlled-select";
+import ControlledCheckbox from "@/components/molecules/controlled-checkbox";
 import { Button } from "@/components/ui/button";
 import { useOllieIntake } from "../_hooks/use-ollie-intake";
 import type { Declaration } from "../types";
@@ -43,8 +44,9 @@ export function OllieIntakeForm({
         <Form {...form}>
           <form onSubmit={submit} className="mt-3 space-y-3">
             <ControlledInput name="field" label="Field of study" placeholder="e.g. Software engineering" optional />
+            <ControlledCheckbox name="undecided" options={[{ label: "Not sure yet — help me explore", value: "yes" }]} optional />
             <ControlledSelect name="degree" label="Degree level" placeholder="Choose one" values={DEGREES} optional />
-            <ControlledInput name="budget" label="Yearly budget (USD)" type="number" placeholder="e.g. 30000" optional />
+            <ControlledInput name="budget" label="Yearly budget (USD)" placeholder={'e.g. 30000 — or "open"'} optional />
             <div className="flex items-center gap-2 pt-1">
               <Button type="submit" disabled={pending}>
                 {pending ? "Saving…" : "Start my shortlist"}
