@@ -86,7 +86,8 @@ export interface ShortlistItem {
   // Links the row to its school page (/schools/[id]); null if unresolved.
   institutionId: string | null;
   institution: string;
-  program: string;
+  // null while the learner is undecided — the card is the SCHOOL, no course tag.
+  program: string | null;
   category: string | null;
   fitScore: number | null; // 0–100 vs the learner's OWN criteria — never admit odds
   reasons: string[];

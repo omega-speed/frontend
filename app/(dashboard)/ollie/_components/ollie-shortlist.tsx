@@ -79,7 +79,7 @@ function Row({ item, index }: { item: ShortlistItem; index: number }) {
         </div>
         {item.fitScore != null && <FitRing score={item.fitScore} />}
       </div>
-      <p className="mt-0.5 text-xs text-muted-foreground">{item.program}</p>
+      {item.program && <p className="mt-0.5 text-xs text-muted-foreground">{item.program}</p>}
 
       {item.athletics?.length > 0 && (
         <div className="mt-1.5 flex flex-wrap gap-1">
