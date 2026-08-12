@@ -173,6 +173,7 @@ export interface OllieAnswer {
   // available. The facts still live in `synthesis`/`options`; this only rewords.
   voice?: string;
   suggestions?: string[]; // tappable next moves from real gaps
+  scoringChanged?: boolean; // this turn saved a fact the matcher scores on
   form?: { missing: string[] }; // Ollie needs several essentials → show the quick intake form
 }
 

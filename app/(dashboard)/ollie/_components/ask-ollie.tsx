@@ -86,9 +86,9 @@ export function AskOllie({
         if (res.ok && res.answer.form && !base.some((x) => x.role === "form" && !x.resolved)) next.push({ role: "form" });
         return next;
       });
-      // Refresh the panels only when the turn actually changed the profile (an
-      // auto-saved fact) — a plain question or greeting doesn't move the shortlist.
-      if (res.ok && res.answer.saved && res.answer.saved.length > 0) onActivity?.();
+      // Refresh the panels ONLY when the turn changed something the matcher
+      // actually scores on — "no location in mind" saves quietly, no 30s re-score.
+      if (res.ok && res.answer.scoringChanged) onActivity?.();
     } finally {
       setBusy(false);
       scrollToEnd();
