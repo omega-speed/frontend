@@ -3,6 +3,7 @@
 import { Suspense, useCallback, useState } from "react";
 import { AskOllie } from "./ask-ollie";
 import { OlliePanel } from "./ollie-panel";
+import { TwinStatus } from "./twin-status";
 import { OllieMark } from "./ollie-mark";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -25,7 +26,13 @@ function ChatLoading() {
 // transcript is passed as a PROMISE and streamed, so the shell never blocks on it.
 // Below lg the panel becomes a full-screen overlay opened from a slim toggle bar —
 // on a phone it would otherwise not exist at all.
-export function OllieWorkspace({ conversationPromise }: { conversationPromise: Promise<ConversationMessage[]> }) {
+export function OllieWorkspace({
+  initialPanel,
+  conversationPromise,
+}: {
+  conversationPromise: Promise<ConversationMessage[]>;
+  initialPanel?: string;
+}) {
   const [refreshKey, setRefreshKey] = useState(0);
   // True while the backend re-scores + rebuilds the portfolio — the slow window
   // where the panel would otherwise sit unchanged and look stuck.
@@ -52,10 +59,13 @@ export function OllieWorkspace({ conversationPromise }: { conversationPromise: P
         </Button>
       </div>
       <div className="flex min-h-0 flex-1">
-        <div className="min-w-0 flex-1">
-          <Suspense fallback={<ChatLoading />}>
-            <AskOllie onActivity={bump} conversationPromise={conversationPromise} />
-          </Suspense>
+        <div className="flex min-w-0 flex-1 flex-col">
+          <TwinStatus refreshKey={refreshKey} />
+          <div className="min-h-0 flex-1">
+            <Suspense fallback={<ChatLoading />}>
+              <AskOllie onActivity={bump} conversationPromise={conversationPromise} />
+            </Suspense>
+          </div>
         </div>
         <aside
           className={cn(
@@ -71,7 +81,7 @@ export function OllieWorkspace({ conversationPromise }: { conversationPromise: P
             </Button>
           </div>
           <div className="h-[calc(100%-2.5rem)] lg:h-full">
-            <OlliePanel refreshKey={refreshKey} refreshing={refreshing} />
+            <OlliePanel refreshKey={refreshKey} refreshing={refreshing} initialTab={initialPanel} />
           </div>
         </aside>
       </div>

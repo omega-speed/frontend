@@ -128,7 +128,7 @@ export function OllieApplications({ refreshKey }: { refreshKey: number }) {
     });
   };
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   useEffect(load, [refreshKey]);
 
   const onSync = (id: string) => {

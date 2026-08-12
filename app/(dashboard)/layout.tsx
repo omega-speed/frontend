@@ -2,47 +2,48 @@ import { Suspense, ReactNode } from "react";
 import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
 import UserProfile from "@/components/molecules/user-profile";
+import { getCurrentUser } from "@/lib/auth";
+import { JourneySidebar } from "./_components/journey-sidebar";
 
 // Every dashboard route is authenticated (reads cookies) and must render per-request.
-// Without this, `next build` tries to statically prerender them, which fails.
 export const dynamic = "force-dynamic";
 
-// The whole signed-in app is one screen: Ollie. No sidebar, no page chrome — a
-// slim top bar with the wordmark and the account menu, and Ollie fills the rest.
-export default function layout({ children }: { children: ReactNode }) {
+// ONE navigation: the dark journey sidebar (desktop). Mobile keeps a slim top
+// bar until the tab-bar slice lands. Content fills the rest.
+export default async function layout({ children }: { children: ReactNode }) {
+  const user = await getCurrentUser();
   return (
-    <div className="flex min-h-svh flex-col bg-background">
-      <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-2 border-b border-border bg-background/95 px-4 backdrop-blur supports-backdrop-filter:bg-background/80 md:px-6">
-        <Link href="/ollie" className="flex items-center gap-2.5">
-          <span
-            className="flex size-7 items-center justify-center rounded-full shadow-sm"
-            style={{ background: "linear-gradient(135deg, var(--primary), #6d5efc)" }}
-          >
-            <span className="size-2 rounded-full bg-white/85" />
-          </span>
-          <span className="text-sm font-black uppercase tracking-[0.28em] text-primary">Qoollege</span>
-        </Link>
-        <nav className="ml-5 flex items-center gap-4 text-sm">
-          <Link href="/ollie" className="text-muted-foreground transition-colors hover:text-foreground">
-            Ollie
+    <div className="flex min-h-svh bg-background">
+      <JourneySidebar
+        userName={user?.name || user?.email?.split("@")[0] || "Student"}
+        userDetail={user?.email ?? null}
+        badges={{ shortlist: null, funding: null }}
+      />
+      <div className="flex min-w-0 flex-1 flex-col">
+        <header className="sticky top-0 z-10 flex h-12 shrink-0 items-center gap-2 border-b border-border bg-background/95 px-4 backdrop-blur supports-backdrop-filter:bg-background/80 md:justify-end">
+          <Link href="/ollie" className="flex items-center gap-2 md:hidden">
+            <span
+              className="flex size-6 items-center justify-center rounded-full shadow-sm"
+              style={{ background: "linear-gradient(135deg, var(--primary), oklch(0.66 0.24 320))" }}
+            >
+              <span className="size-1.5 rounded-full bg-white/85" />
+            </span>
+            <span className="text-xs font-black uppercase tracking-[0.24em] text-primary">Qoollege</span>
           </Link>
-          <Link href="/journey" className="text-muted-foreground transition-colors hover:text-foreground">
-            Journey
-          </Link>
-          <Link href="/essays" className="text-muted-foreground transition-colors hover:text-foreground">
-            Essays
-          </Link>
-          <Link href="/schools" className="text-muted-foreground transition-colors hover:text-foreground">
-            Schools
-          </Link>
-        </nav>
-        <div className="ml-auto flex items-center gap-4">
-          <Suspense fallback={<Skeleton className="h-8 w-28" />}>
-            <UserProfile />
-          </Suspense>
-        </div>
-      </header>
-      <main className="flex flex-1 flex-col">{children}</main>
+          <nav className="ml-4 flex items-center gap-3 text-xs md:hidden">
+            <Link href="/ollie" className="text-muted-foreground hover:text-foreground">Ollie</Link>
+            <Link href="/journey" className="text-muted-foreground hover:text-foreground">Plan</Link>
+            <Link href="/essays" className="text-muted-foreground hover:text-foreground">Essays</Link>
+            <Link href="/schools" className="text-muted-foreground hover:text-foreground">Schools</Link>
+          </nav>
+          <div className="ml-auto flex items-center gap-4">
+            <Suspense fallback={<Skeleton className="h-8 w-28" />}>
+              <UserProfile />
+            </Suspense>
+          </div>
+        </header>
+        <main className="flex min-w-0 flex-1 flex-col">{children}</main>
+      </div>
     </div>
   );
 }

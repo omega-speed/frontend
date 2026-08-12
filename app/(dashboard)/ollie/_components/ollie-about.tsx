@@ -41,8 +41,32 @@ export function OllieAbout({ refreshKey }: { refreshKey: number }) {
 
   const empty = view && view.using.length === 0 && view.noted.length === 0;
 
+  const meter = view?.completeness;
+
   return (
     <div className="flex h-full flex-col">
+      {meter && !empty && (
+        <div className="px-4 pt-3">
+          <div
+            className="glossy relative overflow-hidden rounded-2xl p-4 text-white"
+            style={{ background: "linear-gradient(135deg, oklch(0.3 0.09 300), oklch(0.24 0.05 300))" }}
+          >
+            <p className="text-sm font-semibold">Your profile so far</p>
+            <p className="mt-0.5 text-[11px] text-white/60">Built from your chats with Ollie</p>
+            <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/15">
+              <motion.div
+                className="h-full rounded-full bg-gold"
+                initial={{ width: 0 }}
+                animate={{ width: `${meter.percent}%` }}
+                transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+              />
+            </div>
+            <p className="mt-2 text-[11px] text-white/80">
+              <span className="font-bold text-gold">{meter.percent}% complete.</span> {meter.nextHint}
+            </p>
+          </div>
+        </div>
+      )}
       <div className="flex-1 overflow-y-auto px-5 py-5">
         {!view && loading && <PanelListSkeleton rows={3} />}
 

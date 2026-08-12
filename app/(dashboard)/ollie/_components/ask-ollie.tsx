@@ -8,6 +8,7 @@ import { OllieAnswerCard } from "./ollie-answer";
 import { OllieThinking } from "./ollie-thinking";
 import { OllieMark } from "./ollie-mark";
 import { OllieIntakeForm } from "./ollie-intake-form";
+import { SavedReceipt } from "./saved-receipt";
 
 type Turn =
   | { role: "user"; text: string }
@@ -150,20 +151,16 @@ export function AskOllie({
     setTurns((t) => [...t, { role: "note", text: "No problem — I didn't change anything." }]);
   }
 
-  // Reverse an auto-saved fact.
-  async function undo(index: number, saved: Declaration[]) {
-    if (busy) return;
-    resolveAt(index);
-    setBusy(true);
+  // Reverse ONE auto-saved fact (receipt chip ✕) — quiet, no new chat turn.
+  async function undoOne(declaration: Declaration) {
     try {
-      const res = await undoDeclare(saved);
-      setTurns((t) => [...t, res.ok ? { role: "ollie", answer: res.answer } : { role: "error", text: res.message }]);
-      onActivity?.(); // response is in — refresh the shortlist / About panels now
-    } finally {
-      setBusy(false);
-      scrollToEnd();
+      await undoDeclare([declaration]);
+      onActivity?.();
+    } catch {
+      // the chip stays removed locally; the panel refresh will reconcile
     }
   }
+
 
   const empty = turns.length === 0 && !busy;
 
@@ -255,23 +252,31 @@ export function AskOllie({
                         </button>
                       </div>
                     )}
-                    {/* auto-saved — quiet confirmation + undo */}
-                    {turn.answer.saved && turn.answer.saved.length > 0 && !turn.resolved && (
-                      <div className="flex items-center gap-2 pl-10 text-xs text-muted-foreground">
-                        <span className="inline-flex items-center gap-1.5">
-                          <span className="size-1.5 rounded-full bg-win" aria-hidden />
-                          Saved
-                        </span>
-                        <span aria-hidden>·</span>
-                        <button
-                          type="button"
-                          onClick={() => undo(i, turn.answer.saved!)}
-                          disabled={busy}
-                          className="font-medium text-primary transition-colors hover:text-primary/80 hover:underline disabled:opacity-40"
-                        >
-                          Undo
-                        </button>
+                    {/* suggested next moves — taps derived from real gaps */}
+                    {!turn.resolved && turn.answer.suggestions && turn.answer.suggestions.length > 0 && i === turns.length - 1 && (
+                      <div className="flex flex-wrap gap-1.5 pl-10">
+                        {turn.answer.suggestions.map((sug) => (
+                          <button
+                            key={sug}
+                            type="button"
+                            disabled={busy}
+                            onClick={() => send(sug)}
+                            className="rounded-full border border-primary/25 bg-card px-3 py-1 text-xs text-primary transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-sm disabled:opacity-40"
+                          >
+                            {sug}
+                          </button>
+                        ))}
                       </div>
+                    )}
+                    {/* auto-saved — the receipt: expandable, grouped, per-chip removable */}
+                    {turn.answer.saved && turn.answer.saved.length > 0 && !turn.resolved && (
+                      <SavedReceipt
+                        saved={turn.answer.saved}
+                        busy={busy}
+                        onRemove={async (d) => {
+                          await undoOne(d);
+                        }}
+                      />
                     )}
                   </div>
                 ) : turn.role === "form" ? (

@@ -88,6 +88,7 @@ export interface ShortlistItem {
   institution: string;
   program: string;
   category: string | null;
+  fitScore: number | null; // 0–100 vs the learner's OWN criteria — never admit odds
   reasons: string[];
   breakdown: ShortlistFactor[];
   // Sports the learner cares about that this school also fields (Q-Athlete cross-ref).
@@ -158,6 +159,7 @@ export interface AboutFact {
 export interface AboutView {
   using: AboutFact[];
   noted: AboutFact[];
+  completeness: { percent: number; nextHint: string; knownCount: number };
 }
 
 export interface OllieAnswer {
@@ -170,6 +172,7 @@ export interface OllieAnswer {
   // Claude's conversational delivery of the (deterministic) synthesis, when
   // available. The facts still live in `synthesis`/`options`; this only rewords.
   voice?: string;
+  suggestions?: string[]; // tappable next moves from real gaps
   form?: { missing: string[] }; // Ollie needs several essentials → show the quick intake form
 }
 

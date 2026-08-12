@@ -10,28 +10,32 @@ import { OllieApplications } from "./ollie-applications";
 
 type Tab = "shortlist" | "applications" | "plan" | "funding" | "about";
 const TABS: { key: Tab; label: string }[] = [
+  { key: "about", label: "About you" },
   { key: "shortlist", label: "Shortlist" },
   { key: "applications", label: "Applications" },
-  { key: "plan", label: "Plan" },
   { key: "funding", label: "Funding" },
-  { key: "about", label: "About you" },
+  { key: "plan", label: "Plan" },
 ];
 
 // The right-hand panel: the live shortlist, the money, and "About you".
 // All refetch when `refreshKey` changes (after each profile-changing turn).
+const isTab = (t: string | undefined): t is Tab => TABS.some((x) => x.key === t);
+
 export function OlliePanel({
   refreshKey,
   refreshing = false,
+  initialTab,
 }: {
   refreshKey: number;
   refreshing?: boolean;
+  initialTab?: string;
 }) {
-  const [tab, setTab] = useState<Tab>("shortlist");
+  const [tab, setTab] = useState<Tab>(isTab(initialTab) ? initialTab : "shortlist");
   // Keep-alive tabs: a tab MOUNTS the first time it's opened and then stays
   // mounted (hidden) — switching back is instant, no refetch. Data still
   // refreshes when `refreshKey` changes (a real profile-changing turn).
   const [visited, setVisited] = useState<Set<Tab>>(
-    () => new Set(["shortlist"]),
+    () => new Set<Tab>(["shortlist", ...(isTab(initialTab) ? ([initialTab] as Tab[]) : [])]),
   );
   const open = (t: Tab) => {
     setTab(t);

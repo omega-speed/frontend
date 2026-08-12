@@ -6,7 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { getShortlist } from "../service";
 import type { ShortlistItem, ShortlistView } from "../types";
 import { WARM, WARM_SOFT } from "./ollie-theme";
-import { PanelListSkeleton } from "./panel-bits";
+import { PanelEmpty, PanelListSkeleton } from "./panel-bits";
 
 // LOW-confidence factors are honest estimates; flag them quietly.
 const CONFIDENCE_NOTE: Record<string, string> = {
@@ -20,14 +20,36 @@ const CONFIDENCE_NOTE: Record<string, string> = {
 // working list, not a generated grid.
 const CATEGORY: Record<string, { label: string; color: string }> = {
   PINNED: { label: "Your pick", color: "var(--gold)" },
-  FINANCIAL_SAFETY: { label: "Safety", color: "var(--win)" },
+  FINANCIAL_SAFETY: { label: "Sure bet, easy on money", color: "var(--win)" },
   LIKELY: { label: "Likely", color: "var(--win)" },
   TARGET: { label: "Target", color: "var(--primary)" },
-  REACH: { label: "Reach", color: "var(--loss)" },
-  HIGH_UNCERTAINTY: { label: "Unsure", color: "var(--muted-foreground)" },
+  REACH: { label: "Worth the stretch", color: "var(--gold)" },
+  HIGH_UNCERTAINTY: { label: "Need more info", color: "var(--muted-foreground)" },
   SPECIAL_PATHWAY: { label: "Pathway", color: "var(--social)" },
   STRATEGIC_WILDCARD: { label: "Wildcard", color: "var(--gold)" },
 };
+
+
+// The fit ring: 0–100 match to the learner's OWN stated criteria — deliberately
+// NOT admission odds (annotation 5 in the mockup: "fit score, not admit odds").
+function FitRing({ score }: { score: number }) {
+  const r = 15;
+  const c = 2 * Math.PI * r;
+  return (
+    <span className="relative inline-flex size-10 shrink-0 items-center justify-center" title="Match to your criteria — not admission odds">
+      <svg viewBox="0 0 36 36" className="size-10 -rotate-90">
+        <circle cx="18" cy="18" r={r} fill="none" stroke="var(--muted)" strokeWidth="3" />
+        <motion.circle
+          cx="18" cy="18" r={r} fill="none" stroke="var(--gold)" strokeWidth="3" strokeLinecap="round"
+          initial={{ strokeDasharray: c, strokeDashoffset: c }}
+          animate={{ strokeDashoffset: c * (1 - score / 100) }}
+          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+        />
+      </svg>
+      <span className="absolute text-[11px] font-bold tabular-nums text-foreground">{score}</span>
+    </span>
+  );
+}
 
 function Row({ item, index }: { item: ShortlistItem; index: number }) {
   const c = CATEGORY[item.category ?? ""] ?? CATEGORY.HIGH_UNCERTAINTY;
@@ -39,20 +61,23 @@ function Row({ item, index }: { item: ShortlistItem; index: number }) {
       transition={{ duration: 0.28, delay: index * 0.05 }}
       className="border-b border-border/70 px-5 py-4 last:border-b-0"
     >
-      <div className="flex items-baseline justify-between gap-3">
-        <h3 className="text-[15px] font-semibold leading-snug text-foreground">
-          {item.institutionId ? (
-            <Link href={`/schools/${item.institutionId}`} className="transition-colors hover:text-primary">
-              {item.institution}
-            </Link>
-          ) : (
-            item.institution
-          )}
-        </h3>
-        <span className="flex shrink-0 items-center gap-1.5 text-[11px] font-semibold" style={{ color: c.color }}>
-          <span className="size-1.5 rounded-full" style={{ background: c.color }} aria-hidden />
-          {c.label}
-        </span>
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h3 className="text-[15px] font-semibold leading-snug text-foreground">
+            {item.institutionId ? (
+              <Link href={`/schools/${item.institutionId}`} className="transition-colors hover:text-primary">
+                {item.institution}
+              </Link>
+            ) : (
+              item.institution
+            )}
+          </h3>
+          <span className="flex items-center gap-1.5 text-[11px] font-semibold" style={{ color: c.color }}>
+            <span className="size-1.5 rounded-full" style={{ background: c.color }} aria-hidden />
+            {c.label}
+          </span>
+        </div>
+        {item.fitScore != null && <FitRing score={item.fitScore} />}
       </div>
       <p className="mt-0.5 text-xs text-muted-foreground">{item.program}</p>
 
@@ -124,55 +149,6 @@ function Row({ item, index }: { item: ShortlistItem; index: number }) {
   );
 }
 
-const STEPS: { key: "field" | "degree" | "budget"; label: string }[] = [
-  { key: "field", label: "Field of study" },
-  { key: "degree", label: "Degree level" },
-  { key: "budget", label: "Yearly budget" },
-];
-
-// The three-step momentum stepper shown while the shortlist is still locked.
-function ProgressStepper({ progress }: { progress: ShortlistView["progress"] }) {
-  const done = STEPS.filter((s) => progress[s.key]).length;
-  const nextPending = STEPS.find((s) => !progress[s.key]);
-  return (
-    <div className="px-5 py-6">
-      <p className="text-sm font-semibold text-foreground">You&apos;re building your list</p>
-      <p className="mt-1 text-xs text-muted-foreground">Three quick things unlock your shortlist.</p>
-
-      <div className="mt-4 space-y-2.5">
-        {STEPS.map((s) => {
-          const isDone = progress[s.key];
-          return (
-            <div key={s.key} className="flex items-center gap-2.5 text-sm">
-              <span
-                className="flex size-4 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white"
-                style={{ background: isDone ? WARM : "transparent", border: isDone ? "none" : "1.5px solid var(--border)" }}
-              >
-                {isDone ? "✓" : ""}
-              </span>
-              <span className={isDone ? "text-foreground" : "text-muted-foreground"}>{s.label}</span>
-            </div>
-          );
-        })}
-      </div>
-
-      <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-muted">
-        <motion.div
-          className="h-full rounded-full"
-          style={{ background: WARM }}
-          initial={{ width: 0 }}
-          animate={{ width: `${(done / STEPS.length) * 100}%` }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
-        />
-      </div>
-      <p className="mt-2 text-xs text-muted-foreground">
-        {done} of {STEPS.length} —{" "}
-        {nextPending ? <>tell me your {nextPending.label.toLowerCase()} next.</> : "all set!"}
-      </p>
-    </div>
-  );
-}
-
 // The live shortlist. Refetches whenever `refreshKey` changes (after each chat
 // turn) so it tracks the conversation without ever putting schools in the chat.
 export function OllieShortlist({ refreshKey, refreshing = false }: { refreshKey: number; refreshing?: boolean }) {
@@ -222,7 +198,15 @@ export function OllieShortlist({ refreshKey, refreshing = false }: { refreshKey:
         )}
 
         {/* Not ready — a friendly momentum stepper */}
-        {view && !view.ready && <ProgressStepper progress={view.progress} />}
+        {view && !view.ready && (
+          <PanelEmpty
+            title="Your list starts with one sentence"
+            body="Tell Ollie anything about you — what you enjoy, where you'd love to live, even 'somewhere it snows' — and schools start appearing here."
+            hint="I'm undecided — help me explore"
+          />
+        )}
+
+
 
         {/* Ollie's one-line read on the list (AI-written; static fallback) */}
         {view?.ready && count > 0 && !busy && (
@@ -244,14 +228,39 @@ export function OllieShortlist({ refreshKey, refreshing = false }: { refreshKey:
         )}
 
         {/* The list */}
+        {view?.ready && view.options.length > 0 && (
+          <p className="border-b border-border/70 bg-accent/40 px-5 py-2 text-[11px] leading-relaxed text-accent-foreground">
+            <span className="font-semibold">Matched to your profile.</span> Fit is about you, not rankings — the ring is
+            how well each school matches what YOU said matters.
+          </p>
+        )}
         <AnimatePresence>
-          {view?.ready && view.options.length > 0 && (
-            <ul className={`transition-opacity duration-300 ${busy ? "opacity-40" : "opacity-100"}`}>
-              {view.options.map((item, i) => (
-                <Row key={item.optionId} item={item} index={i} />
-              ))}
-            </ul>
-          )}
+          {view?.ready && view.options.length > 0 && (() => {
+            const lane = (cats: string[]) => view.options.filter((o) => cats.includes(o.category ?? ""));
+            const lanes = [
+              { key: "picks", title: "Your picks", items: lane(["PINNED"]) },
+              { key: "strong", title: "Strong fit — most boxes checked today", items: lane(["FINANCIAL_SAFETY", "LIKELY", "TARGET", "STRATEGIC_WILDCARD", "SPECIAL_PATHWAY"]) },
+              { key: "aspiration", title: "Aspiration — worth the stretch", items: lane(["REACH"]) },
+              { key: "unknown", title: "Need more info to place", items: lane(["HIGH_UNCERTAINTY"]) },
+            ].filter((l) => l.items.length > 0);
+            let idx = 0;
+            return (
+              <div className={`transition-opacity duration-300 ${busy ? "opacity-40" : "opacity-100"}`}>
+                {lanes.map((l) => (
+                  <div key={l.key}>
+                    <p className="border-b border-border/70 bg-muted/40 px-5 py-1.5 text-[10px] font-black uppercase text-muted-foreground">
+                      {l.title}
+                    </p>
+                    <ul>
+                      {l.items.map((item) => (
+                        <Row key={item.optionId} item={item} index={idx++} />
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
         </AnimatePresence>
 
         {/* OL-005: honest cross-domain tensions — shown, never averaged away */}
