@@ -181,6 +181,9 @@ export interface OllieAnswer {
   suggestions?: string[]; // tappable next moves from real gaps
   scoringChanged?: boolean; // this turn saved a fact the matcher scores on
   form?: { missing: string[] }; // Ollie needs several essentials → show the quick intake form
+  // OL-006: a consequential action awaiting the learner's explicit yes — render
+  // Confirm / Not now; a typed "yes"/"not now" works the same.
+  pendingAction?: { actionId: string; kind: string; summary: string };
 }
 
 // One saved turn of the Ollie transcript (GET /ollie/conversation). Session memory

@@ -2,7 +2,7 @@
 
 import { use, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { askOllie, confirmDeclare, undoDeclare } from "../service";
+import { askOllie, confirmDeclare, decideOllieAction, undoDeclare } from "../service";
 import type { ConversationMessage, Declaration, OllieAnswer } from "../types";
 import { OllieAnswerCard } from "./ollie-answer";
 import { OllieThinking } from "./ollie-thinking";
@@ -146,6 +146,21 @@ export function AskOllie({
     }
   }
 
+  // OL-006: the learner's explicit yes/no to a proposed consequential action.
+  async function decide(index: number, actionId: string, decision: "confirm" | "decline") {
+    if (busy) return;
+    resolveAt(index);
+    setBusy(true);
+    try {
+      const res = await decideOllieAction(actionId, decision);
+      setTurns((t) => [...t, res.ok ? { role: "ollie", answer: res.answer } : { role: "error", text: res.message }]);
+      if (decision === "confirm") onActivity?.(); // something real changed — refresh panels
+    } finally {
+      setBusy(false);
+      scrollToEnd();
+    }
+  }
+
   function cancel(index: number) {
     resolveAt(index);
     setTurns((t) => [...t, { role: "note", text: "No problem — I didn't change anything." }]);
@@ -245,6 +260,27 @@ export function AskOllie({
                         <button
                           type="button"
                           onClick={() => cancel(i)}
+                          disabled={busy}
+                          className="rounded-full px-4 py-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground disabled:opacity-40"
+                        >
+                          Not now
+                        </button>
+                      </div>
+                    )}
+                    {/* OL-006: consequential action — nothing happens without this yes */}
+                    {turn.answer.pendingAction && !turn.resolved && (
+                      <div className="flex gap-2 pl-10">
+                        <button
+                          type="button"
+                          onClick={() => decide(i, turn.answer.pendingAction!.actionId, "confirm")}
+                          disabled={busy}
+                          className="cta-btn rounded-full bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-40"
+                        >
+                          Yes, do it
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => decide(i, turn.answer.pendingAction!.actionId, "decline")}
                           disabled={busy}
                           className="rounded-full px-4 py-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground disabled:opacity-40"
                         >

@@ -52,6 +52,20 @@ export async function commitSchool(
   }
 }
 
+// POST /ollie/action — the learner's explicit yes/no to a consequential action
+// Ollie proposed (OL-006). Only a confirm makes anything happen.
+export async function decideOllieAction(actionId: string, decision: "confirm" | "decline"): Promise<AskResult> {
+  const user = await getCurrentUser();
+  if (!user) return { ok: false, message: "Please sign in again." };
+  try {
+    const res = await api.post("ollie/action", { actionId, decision });
+    if (res?.success && res.data) return { ok: true, answer: res.data as OllieAnswer };
+    return { ok: false, message: res?.message ?? "Couldn't record your decision just now." };
+  } catch {
+    return { ok: false, message: "Couldn't record your decision just now." };
+  }
+}
+
 // GET /ollie/shortlist — the schools currently on the learner's shortlist + why.
 export type ShortlistResult =
   | { ok: true; view: ShortlistView }
