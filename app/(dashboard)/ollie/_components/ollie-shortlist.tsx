@@ -3,7 +3,7 @@
 import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { getShortlist } from "../service";
+import { commitSchool, getShortlist } from "../service";
 import type { ShortlistItem, ShortlistView } from "../types";
 import { WARM, WARM_SOFT } from "./ollie-theme";
 import { PanelEmpty, PanelListSkeleton } from "./panel-bits";
@@ -51,15 +51,25 @@ function FitRing({ score }: { score: number }) {
   );
 }
 
-function Row({ item, index }: { item: ShortlistItem; index: number }) {
-  const c = CATEGORY[item.category ?? ""] ?? CATEGORY.HIGH_UNCERTAINTY;
+function Row({
+  item,
+  index,
+  onCommit,
+  committing,
+}: {
+  item: ShortlistItem;
+  index: number;
+  onCommit?: (item: ShortlistItem, action: "commit" | "uncommit") => void;
+  committing?: boolean;
+}) {
+  const c = item.committed ? { label: "Your school", color: "var(--primary)" } : (CATEGORY[item.category ?? ""] ?? CATEGORY.HIGH_UNCERTAINTY);
   const [open, setOpen] = useState(false);
   return (
     <motion.li
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.28, delay: index * 0.05 }}
-      className="border-b border-border/70 px-5 py-4 last:border-b-0"
+      className={`border-b border-border/70 px-5 py-4 last:border-b-0 ${item.committed ? "bg-primary/5" : ""}`}
     >
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
@@ -140,6 +150,16 @@ function Row({ item, index }: { item: ShortlistItem; index: number }) {
                     </div>
                   ))}
                 </dl>
+                {onCommit && item.institutionId && !item.committed && (
+                  <button
+                    type="button"
+                    disabled={committing}
+                    onClick={() => onCommit(item, "commit")}
+                    className="mt-3 rounded-full border border-primary/40 px-3 py-1 text-[11px] font-semibold text-primary transition-colors hover:bg-primary hover:text-primary-foreground disabled:opacity-40"
+                  >
+                    This is my school — commit
+                  </button>
+                )}
               </motion.div>
             )}
           </AnimatePresence>
@@ -154,6 +174,7 @@ function Row({ item, index }: { item: ShortlistItem; index: number }) {
 export function OllieShortlist({ refreshKey, refreshing = false }: { refreshKey: number; refreshing?: boolean }) {
   const [view, setView] = useState<ShortlistView | null>(null);
   const [loading, startLoad] = useTransition();
+  const [committing, startCommit] = useTransition();
 
   useEffect(() => {
     startLoad(async () => {
@@ -161,6 +182,19 @@ export function OllieShortlist({ refreshKey, refreshing = false }: { refreshKey:
       if (res.ok) setView(res.view);
     });
   }, [refreshKey]);
+
+  // Commit / take it back, then re-read — the decision is the learner's alone,
+  // recorded on their twin exactly like saying it to Ollie.
+  const onCommit = (item: ShortlistItem, action: "commit" | "uncommit") => {
+    if (!item.institutionId) return;
+    startCommit(async () => {
+      const res = await commitSchool(item.institutionId!, action);
+      if (res.ok) {
+        const fresh = await getShortlist();
+        if (fresh.ok) setView(fresh.view);
+      }
+    });
+  };
 
   // Busy spans the WHOLE update: the backend re-score (refreshing) + the re-read
   // (loading). Without covering the first part, the panel looks stuck for seconds.
@@ -208,6 +242,31 @@ export function OllieShortlist({ refreshKey, refreshing = false }: { refreshKey:
 
 
 
+        {/* The commitment — the learner's decision, owned and reversible */}
+        {view?.ready && view.committed && (
+          <div className="glossy mx-5 mt-4 rounded-2xl border border-primary/30 bg-primary/10 px-4 py-3">
+            <p className="text-sm font-semibold text-foreground">
+              You committed to {view.committed.institution}
+            </p>
+            <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+              Your plan, funding and applications now point there. The rest of this list stays as backups.
+            </p>
+            <button
+              type="button"
+              disabled={committing}
+              onClick={() =>
+                onCommit(
+                  { institutionId: view.committed!.institutionId } as ShortlistItem,
+                  "uncommit",
+                )
+              }
+              className="mt-2 text-[11px] font-semibold text-primary transition-opacity hover:opacity-70 disabled:opacity-40"
+            >
+              Changed your mind? Take it back
+            </button>
+          </div>
+        )}
+
         {/* Ollie's one-line read on the list (AI-written; static fallback) */}
         {view?.ready && count > 0 && !busy && (
           <div
@@ -236,9 +295,10 @@ export function OllieShortlist({ refreshKey, refreshing = false }: { refreshKey:
         )}
         <AnimatePresence>
           {view?.ready && view.options.length > 0 && (() => {
-            const lane = (cats: string[]) => view.options.filter((o) => cats.includes(o.category ?? ""));
+            const lane = (cats: string[]) => view.options.filter((o) => !o.committed && cats.includes(o.category ?? ""));
             const lanes = [
-              { key: "picks", title: "Your picks", items: lane(["PINNED"]) },
+              { key: "committed", title: "Your school — committed", items: view.options.filter((o) => o.committed) },
+              { key: "picks", title: view.committed ? "Backups you picked" : "Your picks", items: lane(["PINNED"]) },
               { key: "strong", title: "Strong fit — most boxes checked today", items: lane(["FINANCIAL_SAFETY", "LIKELY", "TARGET", "STRATEGIC_WILDCARD", "SPECIAL_PATHWAY"]) },
               { key: "aspiration", title: "Aspiration — worth the stretch", items: lane(["REACH"]) },
               { key: "unknown", title: "Need more info to place", items: lane(["HIGH_UNCERTAINTY"]) },
@@ -253,7 +313,7 @@ export function OllieShortlist({ refreshKey, refreshing = false }: { refreshKey:
                     </p>
                     <ul>
                       {l.items.map((item) => (
-                        <Row key={item.optionId} item={item} index={idx++} />
+                        <Row key={item.optionId} item={item} index={idx++} onCommit={onCommit} committing={committing} />
                       ))}
                     </ul>
                   </div>

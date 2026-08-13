@@ -94,6 +94,8 @@ export interface ShortlistItem {
   breakdown: ShortlistFactor[];
   // Sports the learner cares about that this school also fields (Q-Athlete cross-ref).
   athletics: { sport: string; division: string | null }[];
+  // True on THE school the learner committed to — it leads the list.
+  committed?: boolean;
 }
 
 export interface ShortlistView {
@@ -107,6 +109,9 @@ export interface ShortlistView {
   // consensus — plus a human-escalation line for high-consequence conflicts.
   conflicts?: { optionId: string | null; severity: "MODERATE" | "HIGH"; statement: string }[];
   escalation?: string | null;
+  // Set when the learner has committed to a school — the list is then
+  // "your school + backups" and the other tabs plan around it.
+  committed?: { institutionId: string; institution: string } | null;
 }
 
 // One assessed award on the Funding tab (GET /ollie/funding).

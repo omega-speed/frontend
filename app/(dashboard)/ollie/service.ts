@@ -35,6 +35,23 @@ export async function confirmDeclare(declarations: Declaration[]): Promise<AskRe
   }
 }
 
+// POST /ollie/pin with commit/uncommit — record (or take back) THE school. The
+// same twin decision the chat path writes, just without a chat turn.
+export async function commitSchool(
+  institutionId: string,
+  action: "commit" | "uncommit",
+): Promise<{ ok: boolean; message?: string }> {
+  const user = await getCurrentUser();
+  if (!user) return { ok: false, message: "Please sign in again." };
+  try {
+    const res = await api.post("ollie/pin", { institutionId, action });
+    if (res?.success) return { ok: true };
+    return { ok: false, message: res?.message ?? "Couldn't record that just now." };
+  } catch {
+    return { ok: false, message: "Couldn't record that just now." };
+  }
+}
+
 // GET /ollie/shortlist — the schools currently on the learner's shortlist + why.
 export type ShortlistResult =
   | { ok: true; view: ShortlistView }
