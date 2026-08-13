@@ -18,15 +18,22 @@ const JOURNEY: { label: string; href: string; panel?: string; badgeKey?: "shortl
   { label: "Schools", href: "/schools" },
 ];
 
-function NavLinks({ badges }: { badges: { shortlist: string | null; funding: string | null } }) {
+function NavLinks({
+  badges,
+  showHomeschool,
+}: {
+  badges: { shortlist: string | null; funding: string | null };
+  showHomeschool?: boolean;
+}) {
   const pathname = usePathname();
   const params = useSearchParams();
   const activePanel = params.get("panel");
 
+  const items = showHomeschool ? [...JOURNEY, { label: "Homeschool", href: "/homeschool" }] : JOURNEY;
   return (
     <nav className="flex flex-col gap-0.5 px-3">
       <p className="px-2 pb-1.5 pt-4 text-[10px] font-black uppercase text-white/40">Your journey</p>
-      {JOURNEY.map((item) => {
+      {items.map((item) => {
         const base = item.href.split("?")[0];
         const active =
           pathname === base && (item.panel ? activePanel === item.panel : base !== "/ollie" || !activePanel);
@@ -56,10 +63,12 @@ export function JourneySidebar({
   userName,
   userDetail,
   badges,
+  showHomeschool,
 }: {
   userName: string;
   userDetail: string | null;
   badges: { shortlist: string | null; funding: string | null };
+  showHomeschool?: boolean;
 }) {
   return (
     <aside className="hidden w-60 shrink-0 flex-col text-white md:flex" style={{ background: "oklch(0.22 0.04 300)" }}>
@@ -81,7 +90,7 @@ export function JourneySidebar({
         </Link>
       </div>
       <Suspense>
-        <NavLinks badges={badges} />
+        <NavLinks badges={badges} showHomeschool={showHomeschool} />
       </Suspense>
       <div className="mt-auto border-t border-white/10 px-5 py-4">
         <p className="truncate text-sm font-semibold text-white">{userName}</p>

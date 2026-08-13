@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
 import UserProfile from "@/components/molecules/user-profile";
 import { getCurrentUser } from "@/lib/auth";
+import { getHomeschool } from "./homeschool/service";
 import { JourneySidebar } from "./_components/journey-sidebar";
 
 // Every dashboard route is authenticated (reads cookies) and must render per-request.
@@ -11,13 +12,16 @@ export const dynamic = "force-dynamic";
 // ONE navigation: the dark journey sidebar (desktop). Mobile keeps a slim top
 // bar until the tab-bar slice lands. Content fills the rest.
 export default async function layout({ children }: { children: ReactNode }) {
-  const user = await getCurrentUser();
+  // The homeschool nav item appears only for homeschool learners — one quiet
+  // surface more for the family that needs it, zero for everyone else.
+  const [user, hs] = await Promise.all([getCurrentUser(), getHomeschool()]);
   return (
     <div className="flex min-h-svh bg-background">
       <JourneySidebar
         userName={user?.name || user?.email?.split("@")[0] || "Student"}
         userDetail={user?.email ?? null}
         badges={{ shortlist: null, funding: null }}
+        showHomeschool={hs.ok && hs.view.isHomeschool}
       />
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-10 flex h-12 shrink-0 items-center gap-2 border-b border-border bg-background/95 px-4 backdrop-blur supports-backdrop-filter:bg-background/80 md:justify-end">
