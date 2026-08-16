@@ -18,18 +18,35 @@ const JOURNEY: { label: string; href: string; panel?: string; badgeKey?: "shortl
   { label: "Schools", href: "/schools" },
 ];
 
+interface SegmentFlags {
+  homeschool: boolean;
+  ged: boolean;
+  transfer: boolean;
+  grad: boolean;
+  global: boolean;
+  athlete: boolean;
+}
+
 function NavLinks({
   badges,
-  showHomeschool,
+  segments,
 }: {
   badges: { shortlist: string | null; funding: string | null };
-  showHomeschool?: boolean;
+  segments?: SegmentFlags;
 }) {
   const pathname = usePathname();
   const params = useSearchParams();
   const activePanel = params.get("panel");
 
-  const items = showHomeschool ? [...JOURNEY, { label: "Homeschool", href: "/homeschool" }] : JOURNEY;
+  const items = [
+    ...JOURNEY,
+    ...(segments?.homeschool ? [{ label: "Homeschool", href: "/homeschool" }] : []),
+    ...(segments?.ged ? [{ label: "GED to college", href: "/ged" }] : []),
+    ...(segments?.transfer ? [{ label: "Transfer credits", href: "/transfer" }] : []),
+    ...(segments?.grad ? [{ label: "Grad studies", href: "/grad" }] : []),
+    ...(segments?.global ? [{ label: "International", href: "/international" }] : []),
+    ...(segments?.athlete ? [{ label: "Athlete", href: "/athlete" }] : []),
+  ];
   return (
     <nav className="flex flex-col gap-0.5 px-3">
       <p className="px-2 pb-1.5 pt-4 text-[10px] font-black uppercase text-white/40">Your journey</p>
@@ -63,12 +80,12 @@ export function JourneySidebar({
   userName,
   userDetail,
   badges,
-  showHomeschool,
+  segments,
 }: {
   userName: string;
   userDetail: string | null;
   badges: { shortlist: string | null; funding: string | null };
-  showHomeschool?: boolean;
+  segments?: SegmentFlags;
 }) {
   return (
     <aside className="hidden w-60 shrink-0 flex-col text-white md:flex" style={{ background: "oklch(0.22 0.04 300)" }}>
@@ -90,7 +107,7 @@ export function JourneySidebar({
         </Link>
       </div>
       <Suspense>
-        <NavLinks badges={badges} showHomeschool={showHomeschool} />
+        <NavLinks badges={badges} segments={segments} />
       </Suspense>
       <div className="mt-auto border-t border-white/10 px-5 py-4">
         <p className="truncate text-sm font-semibold text-white">{userName}</p>

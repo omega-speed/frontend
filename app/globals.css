@@ -281,3 +281,47 @@
   }
 
 }
+
+/* ---------------------------------------------------------------------------
+   Neuroinclusive support (UX-001 · SEG-NEURO-000002/000009)
+   1) prefers-reduced-motion: the OS-level request is honored everywhere —
+      decorative motion collapses to instant state changes.
+   2) Calm mode ([data-calm] on <html>, user-toggled, persisted): kills gloss,
+      sheen, lift, and stagger so the page is quiet — same content, less noise.
+   Focus visibility stays ALWAYS on: keyboard users get a clear ring.
+--------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+[data-calm] .glossy,
+[data-calm] .glow-primary {
+  background-image: none !important;
+  box-shadow: none !important;
+}
+[data-calm] .cta-btn::after {
+  display: none;
+}
+[data-calm] .hover-lift:hover {
+  transform: none;
+  box-shadow: none;
+}
+[data-calm] .panel-pane[data-active="true"] > * > * {
+  animation: none !important;
+}
+[data-calm] .animate-pulse,
+[data-calm] .animate-bounce {
+  animation: none !important;
+}
+
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}

@@ -4,8 +4,8 @@ import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import dayjs from "dayjs";
-import { getApplications, syncApplication } from "../service";
-import type { TrackedApplication } from "../types";
+import { getApplications, syncApplication, updateRequirement } from "../service";
+import type { ApplicationRequirementRow, TrackedApplication } from "../types";
 import { PanelEmpty, PanelListSkeleton } from "./panel-bits";
 
 // Readiness state → quiet colour cue, same language as the other tabs.
@@ -30,7 +30,17 @@ function deadlineLine(app: TrackedApplication): string | null {
   return `${upcoming.deadlineType.replace(/_/g, " ")} · ${d.format("MMM D, YYYY")} · ${d.fromNow()}${upcoming.estimated ? " · estimated — verify with the school" : ""}`;
 }
 
-function Row({ app, index, onSync }: { app: TrackedApplication; index: number; onSync: (id: string) => void }) {
+function Row({
+  app,
+  index,
+  onSync,
+  onRequirement,
+}: {
+  app: TrackedApplication;
+  index: number;
+  onSync: (id: string) => void;
+  onRequirement: (appId: string, r: ApplicationRequirementRow) => void;
+}) {
   const [open, setOpen] = useState(false);
   const readiness = app.readiness;
   const s = STATE[readiness?.overallState ?? "INSUFFICIENT_DATA"] ?? STATE.INSUFFICIENT_DATA;
@@ -85,13 +95,19 @@ function Row({ app, index, onSync }: { app: TrackedApplication; index: number; o
                 </p>
               ))}
               {reqs.map((r) => (
-                <p key={r.id} className="text-xs text-muted-foreground">
+                <button
+                  key={r.id}
+                  type="button"
+                  title="Tap to update your progress"
+                  onClick={() => onRequirement(app.application.id, r)}
+                  className="self-start text-left text-xs text-muted-foreground transition-colors hover:text-foreground"
+                >
                   <span className={REQ_DONE.has(r.status) ? "text-win" : r.status === "UNKNOWN" ? "" : "text-foreground"}>
                     {REQ_DONE.has(r.status) ? "✓" : "•"}
                   </span>{" "}
                   {r.requirementType.replace(/_/g, " ")}
                   {r.mandatory ? "" : " (optional)"} — {r.status.toLowerCase().replace(/_/g, " ")}
-                </p>
+                </button>
               ))}
               <button
                 type="button"
@@ -138,6 +154,20 @@ export function OllieApplications({ refreshKey }: { refreshKey: number }) {
     });
   };
 
+  // Tap a requirement to record YOUR progress: not started → in progress →
+  // complete → back. The write supersedes, never overwrites — history kept.
+  const onRequirement = (appId: string, r: ApplicationRequirementRow) => {
+    const next = r.status === "COMPLETE" ? "NOT_STARTED" : r.status === "IN_PROGRESS" ? "COMPLETE" : "IN_PROGRESS";
+    startTransition(async () => {
+      await updateRequirement(
+        appId,
+        { requirementKey: r.requirementKey, requirementType: r.requirementType, mandatory: r.mandatory },
+        next,
+      );
+      load();
+    });
+  };
+
   if (error) return <p className="px-5 py-6 text-sm text-muted-foreground">{error}</p>;
   if (apps === null) return <PanelListSkeleton rows={3} />;
   if (apps.length === 0) {
@@ -154,7 +184,7 @@ export function OllieApplications({ refreshKey }: { refreshKey: number }) {
     <div>
       <ul>
         {apps.map((a, i) => (
-          <Row key={a.application.id} app={a} index={i} onSync={onSync} />
+          <Row key={a.application.id} app={a} index={i} onSync={onSync} onRequirement={onRequirement} />
         ))}
       </ul>
       <p className="px-5 py-3 text-[11px] leading-relaxed text-muted-foreground">

@@ -189,6 +189,23 @@ export async function getApplications(): Promise<ApplicationsResult> {
 
 // POST /q-admit/applications/{id}/sync — re-interpret the school's canonical
 // requirements/deadlines into this tracker (idempotent; learner progress kept).
+// POST /q-admit/applications/:id/requirements — the learner records their own
+// progress on a requirement (supersede semantics keep the history).
+export async function updateRequirement(
+  applicationId: string,
+  requirement: { requirementKey: string; requirementType: string; mandatory: boolean },
+  status: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETE",
+): Promise<{ ok: boolean; message?: string }> {
+  const user = await getCurrentUser();
+  if (!user) return { ok: false, message: "Please sign in again." };
+  try {
+    const res = await api.post(`q-admit/applications/${applicationId}/requirements`, { ...requirement, status });
+    return { ok: Boolean(res?.success), message: res?.message };
+  } catch {
+    return { ok: false, message: "Couldn't update that." };
+  }
+}
+
 export async function syncApplication(applicationId: string): Promise<{ ok: boolean; message?: string }> {
   const user = await getCurrentUser();
   if (!user) return { ok: false, message: "Please sign in again." };

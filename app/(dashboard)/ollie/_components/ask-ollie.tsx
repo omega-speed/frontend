@@ -7,13 +7,11 @@ import type { ConversationMessage, Declaration, OllieAnswer } from "../types";
 import { OllieAnswerCard } from "./ollie-answer";
 import { OllieThinking } from "./ollie-thinking";
 import { OllieMark } from "./ollie-mark";
-import { OllieIntakeForm } from "./ollie-intake-form";
 import { SavedReceipt } from "./saved-receipt";
 
 type Turn =
   | { role: "user"; text: string }
   | { role: "ollie"; answer: OllieAnswer; resolved?: boolean }
-  | { role: "form"; resolved?: boolean }
   | { role: "note"; text: string }
   | { role: "error"; text: string };
 
@@ -25,7 +23,7 @@ const SUGGESTIONS = [
 ];
 
 // Rehydrate the saved transcript into turns. Past Ollie turns are marked resolved
-// so their one-time controls (Save / Undo / intake form) don't reappear on reload.
+// so their one-time controls (Save / Undo) don't reappear on reload.
 function seedTurns(messages: ConversationMessage[]): Turn[] {
   const turns: Turn[] = [];
   for (const m of messages) {
@@ -74,18 +72,7 @@ export function AskOllie({
     setBusy(true);
     try {
       const res = await askOllie(text);
-      setTurns((t) => {
-        // If a newer answer no longer asks for the intake form, the essentials are
-        // in (told via chat) — retire any open form so it can't sit there forever.
-        const base: Turn[] =
-          res.ok && !res.answer.form
-            ? t.map((x) => (x.role === "form" && !x.resolved ? { ...x, resolved: true } : x))
-            : t;
-        const next: Turn[] = [...base, res.ok ? { role: "ollie", answer: res.answer } : { role: "error", text: res.message }];
-        // Offer the quick form when Ollie needs several essentials — but never stack forms.
-        if (res.ok && res.answer.form && !base.some((x) => x.role === "form" && !x.resolved)) next.push({ role: "form" });
-        return next;
-      });
+      setTurns((t) => [...t, res.ok ? { role: "ollie", answer: res.answer } : { role: "error", text: res.message }]);
       // Refresh the panels ONLY when the turn changed something the matcher
       // actually scores on — "no location in mind" saves quietly, no 30s re-score.
       if (res.ok && res.answer.scoringChanged) onActivity?.();
@@ -95,38 +82,11 @@ export function AskOllie({
     }
   }
 
-  // Mark an interactive turn (proposal or form) resolved so its controls disappear.
+  // Mark an interactive turn (proposal) resolved so its controls disappear.
   function resolveAt(index: number) {
     setTurns((t) =>
-      t.map((turn, i) => (i === index && (turn.role === "ollie" || turn.role === "form") ? { ...turn, resolved: true } : turn)),
+      t.map((turn, i) => (i === index && turn.role === "ollie" ? { ...turn, resolved: true } : turn)),
     );
-  }
-
-  // Open the quick form on demand (the always-available "Fill in my details").
-  function openForm() {
-    if (busy) return;
-    setTurns((t) => (t.some((x) => x.role === "form" && !x.resolved) ? t : [...t, { role: "form" }]));
-    scrollToEnd();
-  }
-
-  // Submit the quick form — save all the essentials at once, then Ollie responds.
-  async function submitForm(index: number, declarations: Declaration[]) {
-    if (busy) return;
-    resolveAt(index);
-    setBusy(true);
-    try {
-      const res = await confirmDeclare(declarations);
-      setTurns((t) => [...t, res.ok ? { role: "ollie", answer: res.answer } : { role: "error", text: res.message }]);
-      onActivity?.(); // response is in — refresh the shortlist / About panels now
-    } finally {
-      setBusy(false);
-      scrollToEnd();
-    }
-  }
-
-  function skipForm(index: number) {
-    resolveAt(index);
-    setTurns((t) => [...t, { role: "note", text: "No problem — just tell me in the chat." }]);
   }
 
   async function save(index: number, proposals: Declaration[]) {
@@ -315,12 +275,6 @@ export function AskOllie({
                       />
                     )}
                   </div>
-                ) : turn.role === "form" ? (
-                  turn.resolved ? (
-                    <p className="pl-10 text-xs text-muted-foreground">Thanks — got those.</p>
-                  ) : (
-                    <OllieIntakeForm onSubmit={(d) => submitForm(i, d)} onSkip={() => skipForm(i)} pending={busy} />
-                  )
                 ) : turn.role === "note" ? (
                   <p className="pl-10 text-sm text-muted-foreground">{turn.text}</p>
                 ) : (
@@ -390,18 +344,9 @@ export function AskOllie({
               </svg>
             </button>
           </div>
-          <div className="mt-2 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center text-[11px] text-muted-foreground">
-            <button
-              type="button"
-              onClick={openForm}
-              disabled={busy}
-              className="font-medium text-primary transition-colors hover:text-primary/80 hover:underline disabled:opacity-40"
-            >
-              Fill in my details
-            </button>
-            <span aria-hidden>·</span>
-            <span>Ollie shows its thinking and is honest about what it doesn&apos;t know.</span>
-          </div>
+          <p className="mt-2 text-center text-[11px] text-muted-foreground">
+            Ollie shows its thinking and is honest about what it doesn&apos;t know.
+          </p>
         </form>
       </div>
     </div>

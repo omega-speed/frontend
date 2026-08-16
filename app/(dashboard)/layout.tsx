@@ -2,9 +2,11 @@ import { Suspense, ReactNode } from "react";
 import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
 import UserProfile from "@/components/molecules/user-profile";
+import { CalmToggle } from "@/components/molecules/calm-toggle";
 import { getCurrentUser } from "@/lib/auth";
-import { getHomeschool } from "./homeschool/service";
+import { getSegments } from "./_lib/segments";
 import { JourneySidebar } from "./_components/journey-sidebar";
+import { NotificationBell } from "./_components/notification-bell";
 
 // Every dashboard route is authenticated (reads cookies) and must render per-request.
 export const dynamic = "force-dynamic";
@@ -12,16 +14,16 @@ export const dynamic = "force-dynamic";
 // ONE navigation: the dark journey sidebar (desktop). Mobile keeps a slim top
 // bar until the tab-bar slice lands. Content fills the rest.
 export default async function layout({ children }: { children: ReactNode }) {
-  // The homeschool nav item appears only for homeschool learners — one quiet
-  // surface more for the family that needs it, zero for everyone else.
-  const [user, hs] = await Promise.all([getCurrentUser(), getHomeschool()]);
+  // Segment nav items appear only for the learners they belong to — one quiet
+  // surface more for those who need it, zero for everyone else.
+  const [user, segments] = await Promise.all([getCurrentUser(), getSegments()]);
   return (
     <div className="flex min-h-svh bg-background">
       <JourneySidebar
         userName={user?.name || user?.email?.split("@")[0] || "Student"}
         userDetail={user?.email ?? null}
         badges={{ shortlist: null, funding: null }}
-        showHomeschool={hs.ok && hs.view.isHomeschool}
+        segments={segments}
       />
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-10 flex h-12 shrink-0 items-center gap-2 border-b border-border bg-background/95 px-4 backdrop-blur supports-backdrop-filter:bg-background/80 md:justify-end">
@@ -40,7 +42,9 @@ export default async function layout({ children }: { children: ReactNode }) {
             <Link href="/essays" className="text-muted-foreground hover:text-foreground">Essays</Link>
             <Link href="/schools" className="text-muted-foreground hover:text-foreground">Schools</Link>
           </nav>
-          <div className="ml-auto flex items-center gap-4">
+          <div className="ml-auto flex items-center gap-3">
+            <NotificationBell />
+            <CalmToggle />
             <Suspense fallback={<Skeleton className="h-8 w-28" />}>
               <UserProfile />
             </Suspense>

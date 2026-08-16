@@ -48,6 +48,13 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${nunito.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
+        {/* First child of body: calm mode applies before the content below it
+            paints — no flash of motion for users who turned it off (UX-001) */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{if(localStorage.getItem("qoollege-calm")==="1")document.documentElement.setAttribute("data-calm","")}catch(e){}`,
+          }}
+        />
         <NextTopLoader
           color="oklch(0.48 0.16 258)"
           height={2}
