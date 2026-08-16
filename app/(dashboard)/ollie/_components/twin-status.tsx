@@ -20,7 +20,7 @@ export function TwinStatus({ refreshKey }: { refreshKey: number }) {
   }, [refreshKey]);
 
   return (
-    <div className="flex items-center gap-2.5 border-b border-border bg-background/60 px-4 py-2">
+    <div className="flex items-center gap-2.5 border-b border-border/50 bg-background/70 px-4 py-2 backdrop-blur-md supports-backdrop-filter:bg-background/55">
       <OllieMark size={22} />
       <div className="min-w-0">
         <p className="text-sm font-semibold leading-tight text-foreground">Ollie</p>

@@ -181,7 +181,7 @@ export function AskOllie({
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: 0.15 + i * 0.06 }}
-                  className="rounded-full border border-border bg-card px-3.5 py-1.5 text-sm text-foreground shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:text-primary hover:shadow-md"
+                  className="press press-lift rounded-full border border-border bg-card px-3.5 py-1.5 text-sm text-foreground shadow-sm transition-[transform,border-color,color,box-shadow] hover:border-primary/40 hover:text-primary hover:shadow-md"
                 >
                   {s}
                 </motion.button>
@@ -257,7 +257,7 @@ export function AskOllie({
                             type="button"
                             disabled={busy}
                             onClick={() => send(sug)}
-                            className="rounded-full border border-primary/25 bg-card px-3 py-1 text-xs text-primary transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-sm disabled:opacity-40"
+                            className="press press-lift rounded-full border border-primary/25 bg-card px-3 py-1 text-xs text-primary transition-[transform,border-color,box-shadow] hover:border-primary/50 hover:shadow-sm disabled:opacity-40"
                           >
                             {sug}
                           </button>
@@ -296,7 +296,7 @@ export function AskOllie({
         )}
       </div>
 
-      <div className="border-t border-border bg-background/80 px-4 py-3 backdrop-blur supports-backdrop-filter:bg-background/60">
+      <div className="border-t border-border/50 bg-background/80 px-4 py-3 backdrop-blur-md supports-backdrop-filter:bg-background/60">
         <form
           onSubmit={(e) => {
             e.preventDefault();

@@ -51,7 +51,7 @@ export function OlliePanel({
               key={t.key}
               type="button"
               onClick={() => open(t.key)}
-              className={`relative flex-1 rounded-full p-1 text-[10px] font-black transition-[color,transform] duration-300 ${
+              className={`press relative flex-1 rounded-full p-1 text-[10px] font-black transition-[color,transform] duration-300 ${
                 tab === t.key
                   ? "scale-[1.04] text-primary-foreground"
                   : "text-muted-foreground hover:text-foreground"

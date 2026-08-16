@@ -95,10 +95,11 @@ export function NotificationBell() {
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 6 }}
-            transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.97 }}
+            transition={{ duration: 0.16, ease: [0.23, 1, 0.32, 1] }}
+            style={{ transformOrigin: "top right" }}
             className="absolute right-0 top-10 z-50 w-80 rounded-2xl border border-border bg-card shadow-lg"
           >
             <div className="border-b border-border/70 px-4 py-2.5">
