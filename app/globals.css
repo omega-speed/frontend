@@ -40,6 +40,7 @@
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
   --color-gold:   var(--gold);
+  --color-navy:   var(--navy);
   --color-win:    var(--win);
   --color-loss:   var(--loss);
   --color-social: var(--social);
@@ -97,7 +98,11 @@
   --sidebar-accent-foreground: oklch(0.24 0.02 300);
   --sidebar-border: oklch(0.89 0.015 300);
   --sidebar-ring: var(--brand);
-  --gold:   var(--brand);
+  /* v3 color split: gold is PROGRESS AND WINS (fit rings, meters, badges) —
+     a real gold, no longer aliased to the brand purple. Navy is chrome. */
+  --gold:   oklch(0.70 0.085 85);
+  --navy:   oklch(0.25 0.04 265);
+  --navy-2: oklch(0.30 0.045 265);
   --win:    oklch(0.55 0.13 150);
   --loss:   oklch(0.55 0.2 27);
   --social: var(--brand);
@@ -143,7 +148,9 @@
   --sidebar-accent-foreground: oklch(0.95 0.006 85);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: var(--brand);
-  --gold:   var(--brand);
+  --gold:   oklch(0.78 0.10 85);
+  --navy:   oklch(0.22 0.035 265);
+  --navy-2: oklch(0.27 0.04 265);
   --win:    oklch(0.7 0.13 150);
   --loss:   oklch(0.6 0.2 25);
   --social: oklch(0.66 0.12 240);

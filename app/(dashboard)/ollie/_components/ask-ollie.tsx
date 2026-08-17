@@ -35,9 +35,11 @@ function seedTurns(messages: ConversationMessage[]): Turn[] {
 
 export function AskOllie({
   onActivity,
+  onOpenPanel,
   conversationPromise,
 }: {
   onActivity?: () => void;
+  onOpenPanel?: (tab: string) => void;
   conversationPromise: Promise<ConversationMessage[]>;
 }) {
   // Unwrap the streamed transcript. `use()` suspends only this pane until it lands
@@ -226,6 +228,27 @@ export function AskOllie({
                           Not now
                         </button>
                       </div>
+                    )}
+                    {/* v3 artifact moment: the turn reshaped the list — a card
+                        that reopens the shortlist, forever (it rehydrates from
+                        the saved answer on reload). */}
+                    {turn.answer.scoringChanged && (
+                      <button
+                        type="button"
+                        onClick={() => onOpenPanel?.("shortlist")}
+                        className="ml-10 flex items-center gap-3 rounded-2xl border border-primary/40 bg-card px-4 py-2.5 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary hover:shadow-md"
+                      >
+                        <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[10px] font-black uppercase text-primary">
+                          Fit
+                        </span>
+                        <span className="min-w-0">
+                          <span className="block text-sm font-semibold text-foreground">Shortlist updated</span>
+                          <span className="block text-[11px] text-muted-foreground">
+                            Re-matched to your profile with what you just said
+                          </span>
+                        </span>
+                        <span className="ml-auto shrink-0 text-xs font-bold text-primary">Open</span>
+                      </button>
                     )}
                     {/* OL-006: consequential action — nothing happens without this yes */}
                     {turn.answer.pendingAction && !turn.resolved && (

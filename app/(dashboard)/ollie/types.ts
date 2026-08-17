@@ -78,6 +78,10 @@ export interface ShortlistFactor {
   label: string;
   detail: string;
   confidence: string;
+  // v3 fit transparency: this dimension's 0-100 value and its weight.
+  // fit = round(weighted average of counted rows); null = not counted, never a penalty.
+  value: number | null;
+  weight: number;
 }
 
 // The side shortlist (GET /ollie/shortlist) — schools + why, shown in the panel.
@@ -134,6 +138,11 @@ export interface FundingAward {
 export interface FundingView {
   ready: boolean;
   awards: FundingAward[];
+  // v3 funding hero: honest "up to" total across the may-qualify awards shown.
+  totalUpTo?: number;
+  fafsa?: { state: "now" | "senior-fall" | "later"; line: string };
+  // Sticker vs typical net per shortlist school — estimates, never promises.
+  netCosts?: { institution: string; stickerPerYear: number | null; netPerYear: number | null }[];
 }
 
 // The journey: one dated timeline of school deadlines, funding deadlines, and

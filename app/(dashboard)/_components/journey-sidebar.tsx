@@ -88,7 +88,7 @@ export function JourneySidebar({
   segments?: SegmentFlags;
 }) {
   return (
-    <aside className="hidden w-60 shrink-0 flex-col text-white md:flex" style={{ background: "oklch(0.22 0.04 300)" }}>
+    <aside className="hidden w-60 shrink-0 flex-col text-white md:flex" style={{ background: "var(--navy)" }}>
       <Link href="/ollie" className="flex items-center gap-2.5 px-5 pb-2 pt-5">
         <span
           className="flex size-7 items-center justify-center rounded-full shadow-sm"

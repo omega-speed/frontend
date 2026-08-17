@@ -38,14 +38,24 @@ export function OllieWorkspace({
   // where the panel would otherwise sit unchanged and look stuck.
   const [refreshing, setRefreshing] = useState(false);
   const [panelOpen, setPanelOpen] = useState(false);
+  // v3 artifact moment: a chat card can jump the panel to a tab, and a fresh
+  // re-score marks the panel "Just updated" for a few seconds.
+  const [tabRequest, setTabRequest] = useState<{ tab: string; n: number } | null>(null);
+  const [justUpdated, setJustUpdated] = useState(false);
   const bump = useCallback(async () => {
     setRefreshing(true);
     try {
       await refreshMatches(); // re-score against the updated profile…
       setRefreshKey((k) => k + 1); // …then have the panel re-read it.
+      setJustUpdated(true);
+      setTimeout(() => setJustUpdated(false), 6000);
     } finally {
       setRefreshing(false);
     }
+  }, []);
+  const openPanelTab = useCallback((tab: string) => {
+    setTabRequest((r) => ({ tab, n: (r?.n ?? 0) + 1 }));
+    setPanelOpen(true); // mobile: the overlay opens; desktop: already visible
   }, []);
 
   return (
@@ -63,7 +73,7 @@ export function OllieWorkspace({
           <TwinStatus refreshKey={refreshKey} />
           <div className="min-h-0 flex-1">
             <Suspense fallback={<ChatLoading />}>
-              <AskOllie onActivity={bump} conversationPromise={conversationPromise} />
+              <AskOllie onActivity={bump} onOpenPanel={openPanelTab} conversationPromise={conversationPromise} />
             </Suspense>
           </div>
         </div>
@@ -81,7 +91,7 @@ export function OllieWorkspace({
             </Button>
           </div>
           <div className="h-[calc(100%-2.5rem)] lg:h-full">
-            <OlliePanel refreshKey={refreshKey} refreshing={refreshing} initialTab={initialPanel} />
+            <OlliePanel refreshKey={refreshKey} refreshing={refreshing} initialTab={initialPanel} tabRequest={tabRequest} justUpdated={justUpdated} />
           </div>
         </aside>
       </div>

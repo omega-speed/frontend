@@ -20,6 +20,39 @@ const STATE: Record<string, { label: string; color: string }> = {
 };
 
 const REQ_DONE = new Set(["COMPLETE", "WAIVED", "NOT_APPLICABLE"]);
+const SUBMITTED_STATES = new Set(["SUBMITTED", "CONFIRMED", "DECIDED", "ENROLLED"]);
+
+// v3 next-action strip: ONE thing, chosen for you — the closest deadline that
+// still has unfinished work, and the first unfinished piece of it. All derived
+// from real trackers; no deadline on file → no invented urgency.
+function nextAction(apps: TrackedApplication[]): {
+  school: string;
+  requirement: string;
+  dueIn: string;
+  estimated: boolean;
+  href: string | null;
+} | null {
+  const candidates = apps
+    .filter((a) => !SUBMITTED_STATES.has(a.application.status))
+    .flatMap((a) => {
+      const due = [...a.application.deadlines]
+        .filter((d) => dayjs(d.dueAt).isAfter(dayjs()))
+        .sort((x, y) => dayjs(x.dueAt).valueOf() - dayjs(y.dueAt).valueOf())[0];
+      const open = a.application.requirements.find((r) => r.mandatory && !REQ_DONE.has(r.status));
+      return due && open ? [{ a, due, open }] : [];
+    })
+    .sort((x, y) => dayjs(x.due.dueAt).valueOf() - dayjs(y.due.dueAt).valueOf());
+  const top = candidates[0];
+  if (!top) return null;
+  const type = top.open.requirementType.replace(/_/g, " ");
+  return {
+    school: top.a.school,
+    requirement: type,
+    dueIn: dayjs(top.due.dueAt).fromNow(),
+    estimated: top.due.estimated,
+    href: /essay|statement|writing/i.test(type) ? "/essays" : null,
+  };
+}
 
 function deadlineLine(app: TrackedApplication): string | null {
   const upcoming = [...app.application.deadlines]
@@ -180,8 +213,49 @@ export function OllieApplications({ refreshKey }: { refreshKey: number }) {
     );
   }
 
+  const act = nextAction(apps);
+  const applying = apps.filter((a) => !SUBMITTED_STATES.has(a.application.status)).length;
+  const submitted = apps.length - applying;
+  const nextDue = apps
+    .flatMap((a) => a.application.deadlines.filter((d) => dayjs(d.dueAt).isAfter(dayjs())))
+    .sort((x, y) => dayjs(x.dueAt).valueOf() - dayjs(y.dueAt).valueOf())[0];
+
   return (
     <div>
+      {/* Summary: the season at a glance */}
+      <div className="grid grid-cols-3 border-b border-border/70 bg-muted/30 text-center">
+        {[
+          { n: String(applying), label: "applying" },
+          { n: String(submitted), label: "submitted" },
+          { n: nextDue ? dayjs(nextDue.dueAt).fromNow(true) : "—", label: "to next deadline" },
+        ].map((x) => (
+          <div key={x.label} className="px-2 py-2.5">
+            <p className="text-lg font-black tabular-nums text-foreground">{x.n}</p>
+            <p className="text-[9px] font-bold uppercase text-muted-foreground">{x.label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* v3: what do I do RIGHT NOW — one thing, on top */}
+      {act && (
+        <div className="mx-5 mt-3 rounded-2xl border border-gold/40 bg-gold/10 px-4 py-2.5">
+          <p className="text-sm font-semibold text-foreground">
+            Next up: your {act.school} {act.requirement}
+          </p>
+          <p className="text-[11px] leading-relaxed text-muted-foreground">
+            Due {act.dueIn}
+            {act.estimated ? " (our estimate — verify with the school)" : ""}.
+            {act.href && (
+              <>
+                {" "}
+                <Link href={act.href} className="font-semibold text-primary hover:opacity-80">
+                  Start here
+                </Link>
+              </>
+            )}
+          </p>
+        </div>
+      )}
       <ul>
         {apps.map((a, i) => (
           <Row key={a.application.id} app={a} index={i} onSync={onSync} onRequirement={onRequirement} />

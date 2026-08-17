@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { OllieShortlist } from "./ollie-shortlist";
 import { OllieFunding } from "./ollie-funding";
@@ -25,10 +25,15 @@ export function OlliePanel({
   refreshKey,
   refreshing = false,
   initialTab,
+  tabRequest,
+  justUpdated = false,
 }: {
   refreshKey: number;
   refreshing?: boolean;
   initialTab?: string;
+  // v3 artifact moment: chat cards jump the panel to a tab.
+  tabRequest?: { tab: string; n: number } | null;
+  justUpdated?: boolean;
 }) {
   const [tab, setTab] = useState<Tab>(isTab(initialTab) ? initialTab : "shortlist");
   // Keep-alive tabs: a tab MOUNTS the first time it's opened and then stays
@@ -42,8 +47,19 @@ export function OlliePanel({
     setVisited((v) => (v.has(t) ? v : new Set(v).add(t)));
   };
 
+  // A chat artifact card asked for a tab (n increments so repeat taps re-fire).
+  useEffect(() => {
+    if (tabRequest && isTab(tabRequest.tab)) open(tabRequest.tab);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tabRequest?.n]);
+
   return (
-    <div className="flex h-full flex-col">
+    <div className={`flex h-full flex-col transition-shadow duration-500 ${justUpdated ? "shadow-[inset_3px_0_0_var(--gold)]" : ""}`}>
+      {justUpdated && (
+        <p className="shrink-0 bg-gold/10 px-4 py-1 text-center text-[10px] font-black uppercase text-gold">
+          Just updated
+        </p>
+      )}
       <div className="shrink-0 px-3 pt-3">
         <div className="flex justify-evenly rounded-full border border-primary/25 bg-primary/10 p-2 pt-1.5">
           {TABS.map((t) => (

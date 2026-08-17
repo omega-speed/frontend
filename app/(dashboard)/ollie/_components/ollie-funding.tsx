@@ -126,6 +126,18 @@ export function OllieFunding({ refreshKey, refreshing = false }: { refreshKey: n
           </div>
         )}
 
+        {/* v3 funding hero: money feels FOUND, not begged for — and honest. */}
+        {view?.ready && count > 0 && (view.totalUpTo ?? 0) > 0 && (
+          <div className="mx-5 mt-4 rounded-2xl border border-gold/30 bg-gold/10 px-4 py-3">
+            <p className="text-[10px] font-black uppercase text-gold">Matched to you so far</p>
+            <p className="text-2xl font-black tabular-nums text-foreground">up to {money(view.totalUpTo!)}</p>
+            <p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">
+              Across {count} award{count === 1 ? "" : "s"} you may qualify for. Sticker price is not the real price —
+              and none of this is promised until it&apos;s in writing.
+            </p>
+          </div>
+        )}
+
         {view && count === 0 && !busy && (
           <PanelEmpty
             title="No scholarships matched yet"
