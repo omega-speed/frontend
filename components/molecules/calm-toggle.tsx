@@ -6,10 +6,15 @@ import { useEffect, useState } from "react";
 // sheen, and decorative motion everywhere. The preference is the user's,
 // persisted locally, applied before paint on later visits via the inline
 // script in the root layout.
+import { CALM_EVENT } from "./calm-provider";
+
 const KEY = "qoollege-calm";
 
 export function applyCalm(on: boolean) {
   document.documentElement.toggleAttribute("data-calm", on);
+  // Tell the motion engine (CalmProvider/MotionConfig) — CSS alone can't stop
+  // JavaScript-driven animation.
+  window.dispatchEvent(new Event(CALM_EVENT));
 }
 
 export function CalmToggle() {

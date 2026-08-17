@@ -3,6 +3,7 @@ import { Nunito } from "next/font/google";
 import NextTopLoader from "nextjs-toploader";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
+import { CalmProvider } from "@/components/molecules/calm-provider";
 import { Toaster } from "sonner";
 import { APP_NAME, APP_DESCRIPTION } from "@/lib/config";
 
@@ -61,7 +62,9 @@ export default function RootLayout({
           shadow="0 0 8px oklch(0.48 0.16 258 / 0.4)"
           showSpinner={false}
         />
-        <TooltipProvider>{children}</TooltipProvider>
+        <CalmProvider>
+          <TooltipProvider>{children}</TooltipProvider>
+        </CalmProvider>
         <Toaster
           theme="light"
           toastOptions={{
