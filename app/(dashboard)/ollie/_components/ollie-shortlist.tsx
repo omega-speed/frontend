@@ -125,143 +125,170 @@ function Row({
   const c = item.committed ? { label: "Your school", color: "var(--primary)" } : (CATEGORY[item.category ?? ""] ?? CATEGORY.HIGH_UNCERTAINTY);
   const [open, setOpen] = useState(false);
   const [mathOpen, setMathOpen] = useState(false);
+  const pinned = item.category === "PINNED" || item.committed;
   return (
     <motion.li
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.28, delay: index * 0.05 }}
-      className={`border-b border-border/70 px-5 py-4 last:border-b-0 ${item.committed ? "bg-primary/5" : ""}`}
+      className={`list-none rounded-2xl border bg-card transition-colors ${
+        item.committed ? "border-primary/50 bg-primary/5" : "border-border hover:border-primary/25"
+      }`}
     >
-      <div className="flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <h3 className="text-[15px] font-semibold leading-snug text-foreground">
-            {item.institutionId ? (
-              <Link href={`/schools/${item.institutionId}`} className="transition-colors hover:text-primary">
-                {item.institution}
-              </Link>
-            ) : (
-              item.institution
-            )}
-          </h3>
-          <span className="flex items-center gap-1.5 text-[11px] font-semibold" style={{ color: c.color }}>
-            <span className="size-1.5 rounded-full" style={{ background: c.color }} aria-hidden />
-            {c.label}
-          </span>
-        </div>
-        {item.fitScore != null && (
-          <span className="relative inline-flex flex-col items-center">
-            <FitRing score={item.fitScore} />
-            {item.breakdown.length > 0 && (
-              <button
-                type="button"
-                aria-label={`How the ${item.fitScore} fit was computed`}
-                onClick={() => setMathOpen((v) => !v)}
-                className="mt-0.5 flex size-4 items-center justify-center rounded-full border border-border text-[9px] font-bold text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary"
+      <div className="p-4">
+        {/* Header: who + how well */}
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h3 className="text-[15px] font-bold leading-snug text-foreground">
+              {item.institutionId ? (
+                <Link href={`/schools/${item.institutionId}`} className="transition-colors hover:text-primary">
+                  {item.institution}
+                </Link>
+              ) : (
+                item.institution
+              )}
+            </h3>
+            <div className="mt-1 flex flex-wrap items-center gap-1.5">
+              <span
+                className="rounded-full px-2 py-0.5 text-[10px] font-black"
+                style={{ color: c.color, background: `color-mix(in oklab, ${c.color} 12%, transparent)` }}
               >
-                i
-              </button>
-            )}
-            <AnimatePresence>{mathOpen && <FitBreakdown item={item} onClose={() => setMathOpen(false)} />}</AnimatePresence>
-          </span>
-        )}
-      </div>
-      {item.program && <p className="mt-0.5 text-xs text-muted-foreground">{item.program}</p>}
-
-      {item.athletics?.length > 0 && (
-        <div className="mt-1.5 flex flex-wrap gap-1">
-          {item.athletics.map((a, i) => (
-            <span
-              key={i}
-              className="rounded-full px-2 py-0.5 text-[11px] font-medium"
-              style={{ background: WARM_SOFT, color: WARM }}
-            >
-              Also fields {a.sport}
-              {a.division ? ` · ${a.division}` : ""}
+                {c.label}
+              </span>
+              {item.program && <span className="truncate text-[11px] text-muted-foreground">{item.program}</span>}
+            </div>
+          </div>
+          {item.fitScore != null && (
+            <span className="relative inline-flex shrink-0 flex-col items-center">
+              <FitRing score={item.fitScore} />
+              {item.breakdown.length > 0 && (
+                <button
+                  type="button"
+                  aria-label={`How the ${item.fitScore} fit was computed`}
+                  onClick={() => setMathOpen((v) => !v)}
+                  className="mt-0.5 flex size-4 items-center justify-center rounded-full border border-border text-[9px] font-bold text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary"
+                >
+                  i
+                </button>
+              )}
+              <AnimatePresence>{mathOpen && <FitBreakdown item={item} onClose={() => setMathOpen(false)} />}</AnimatePresence>
             </span>
-          ))}
+          )}
         </div>
-      )}
 
-      {item.reasons.length > 0 && (
-        <ul className="mt-2 space-y-1">
-          {item.reasons.map((r, i) => (
-            <li key={i} className="flex gap-2 text-xs leading-relaxed text-muted-foreground">
-              <span className="mt-1.5 size-1 shrink-0 rounded-full bg-muted-foreground/50" aria-hidden />
-              <span>{r}</span>
-            </li>
-          ))}
-        </ul>
-      )}
+        {/* YOUR boxes, checked — the card's spine (v3) */}
+        {item.criteria.length > 0 && (
+          <div className="mt-2.5 flex flex-wrap gap-1">
+            {item.criteria.map((cr) => (
+              <span
+                key={cr.label}
+                className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10.5px] font-semibold ${
+                  cr.state === "met"
+                    ? "bg-win/10 text-win"
+                    : cr.state === "miss"
+                      ? "bg-muted text-muted-foreground line-through decoration-muted-foreground/40"
+                      : "border border-dashed border-border text-muted-foreground"
+                }`}
+              >
+                <span aria-hidden>{cr.state === "met" ? "✓" : cr.state === "miss" ? "✕" : "?"}</span>
+                {cr.label}
+              </span>
+            ))}
+          </div>
+        )}
 
-      {item.breakdown.length > 0 && (
-        <div className="mt-2.5">
+        {item.athletics?.length > 0 && (
+          <div className="mt-1.5 flex flex-wrap gap-1">
+            {item.athletics.map((a, i) => (
+              <span key={i} className="rounded-full px-2 py-0.5 text-[10.5px] font-semibold" style={{ background: WARM_SOFT, color: WARM }}>
+                Fields {a.sport}
+                {a.division ? ` · ${a.division}` : ""}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* One honest line; the rest lives behind "Why this one" */}
+        {item.reasons[0] && (
+          <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-muted-foreground">{item.reasons[0]}</p>
+        )}
+
+        <AnimatePresence initial={false}>
+          {open && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.22 }}
+              className="overflow-hidden"
+            >
+              {item.reasons.length > 1 && (
+                <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{item.reasons[1]}</p>
+              )}
+              <dl className="mt-2.5 space-y-2.5 border-l border-border pl-3">
+                {item.breakdown.map((f, i) => (
+                  <div key={i}>
+                    <dt className="flex items-center gap-2 text-[11px] font-bold uppercase text-foreground">
+                      {f.label}
+                      {CONFIDENCE_NOTE[f.confidence] && (
+                        <span className="font-medium normal-case text-muted-foreground">· {CONFIDENCE_NOTE[f.confidence]}</span>
+                      )}
+                    </dt>
+                    <dd className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{f.detail}</dd>
+                  </div>
+                ))}
+              </dl>
+              {/* The big decision lives here, deliberately — not on the card face */}
+              {onCommit && item.institutionId && !item.committed && (
+                <button
+                  type="button"
+                  disabled={committing}
+                  onClick={() => onCommit(item, "commit")}
+                  className="cta-btn mt-3 w-full rounded-full bg-primary px-3 py-1.5 text-[11px] font-bold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-40"
+                >
+                  This is my school — commit
+                </button>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Footer: quick actions always visible, quiet */}
+      <div className="flex items-center gap-1 border-t border-border/60 px-2 py-1.5">
+        {onCommit && item.institutionId && !pinned && (
+          <button
+            type="button"
+            disabled={committing}
+            onClick={() => onCommit(item, "add")}
+            className="rounded-full px-2.5 py-1 text-[11px] font-semibold text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary disabled:opacity-40"
+          >
+            Keep on my list
+          </button>
+        )}
+        {onCommit && item.institutionId && !item.committed && (
+          <button
+            type="button"
+            disabled={committing}
+            onClick={() => onCommit(item, "remove")}
+            title="Takes it off and keeps it off — you can always add it back by name"
+            className="rounded-full px-2.5 py-1 text-[11px] font-semibold text-muted-foreground transition-colors hover:bg-loss/10 hover:text-loss disabled:opacity-40"
+          >
+            Not for me
+          </button>
+        )}
+        {item.breakdown.length > 0 && (
           <button
             type="button"
             onClick={() => setOpen((o) => !o)}
-            className="flex items-center gap-1 text-[11px] font-semibold uppercase text-muted-foreground transition-colors hover:text-primary"
             aria-expanded={open}
+            className="ml-auto flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold text-primary transition-colors hover:bg-primary/10"
           >
-            <span className={`inline-block transition-transform duration-200 ${open ? "rotate-90" : ""}`}>›</span>
             {open ? "Hide the evidence" : "Why this one"}
+            <span className={`inline-block transition-transform duration-200 ${open ? "rotate-90" : ""}`}>›</span>
           </button>
-          <AnimatePresence initial={false}>
-            {open && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.22 }}
-                className="overflow-hidden"
-              >
-                <dl className="mt-2 space-y-2.5 border-l border-border pl-3">
-                  {item.breakdown.map((f, i) => (
-                    <div key={i}>
-                      <dt className="flex items-center gap-2 text-[11px] font-bold uppercase text-foreground">
-                        {f.label}
-                        {CONFIDENCE_NOTE[f.confidence] && (
-                          <span className="font-medium normal-case text-muted-foreground">· {CONFIDENCE_NOTE[f.confidence]}</span>
-                        )}
-                      </dt>
-                      <dd className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{f.detail}</dd>
-                    </div>
-                  ))}
-                </dl>
-                {onCommit && item.institutionId && !item.committed && (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      disabled={committing}
-                      onClick={() => onCommit(item, "commit")}
-                      className="rounded-full border border-primary/40 px-3 py-1 text-[11px] font-semibold text-primary transition-colors hover:bg-primary hover:text-primary-foreground disabled:opacity-40"
-                    >
-                      This is my school — commit
-                    </button>
-                    {item.category !== "PINNED" && (
-                      <button
-                        type="button"
-                        disabled={committing}
-                        onClick={() => onCommit(item, "add")}
-                        className="rounded-full border border-border px-3 py-1 text-[11px] font-semibold text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary disabled:opacity-40"
-                      >
-                        Keep on my list
-                      </button>
-                    )}
-                    <button
-                      type="button"
-                      disabled={committing}
-                      onClick={() => onCommit(item, "remove")}
-                      title="Takes it off and keeps it off — you can always add it back by name"
-                      className="rounded-full border border-border px-3 py-1 text-[11px] font-semibold text-muted-foreground transition-colors hover:border-loss/50 hover:text-loss disabled:opacity-40"
-                    >
-                      Not for me
-                    </button>
-                  </div>
-                )}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      )}
+        )}
+      </div>
     </motion.li>
   );
 }
@@ -412,7 +439,7 @@ export function OllieShortlist({ refreshKey, refreshing = false }: { refreshKey:
                       <p className="text-[10px] font-black uppercase text-muted-foreground">{l.title}</p>
                       {l.blurb && <p className="text-[10px] leading-snug text-muted-foreground/80">{l.blurb}</p>}
                     </div>
-                    <ul>
+                    <ul className="space-y-2.5 px-3 py-3">
                       {l.items.map((item) => (
                         <Row key={item.optionId} item={item} index={idx++} onCommit={onCommit} committing={committing} />
                       ))}

@@ -100,6 +100,8 @@ export interface ShortlistItem {
   athletics: { sport: string; division: string | null }[];
   // True on THE school the learner committed to — it leads the list.
   committed?: boolean;
+  // v3 card chips: the learner's own boxes, checked against this school.
+  criteria: { label: string; state: "met" | "miss" | "unknown" }[];
 }
 
 export interface ShortlistView {
