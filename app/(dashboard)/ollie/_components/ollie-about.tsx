@@ -2,45 +2,70 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { PanelListSkeleton } from "./panel-bits";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { getAbout, undoDeclare } from "../service";
 import type { AboutFact, AboutView } from "../types";
 
-// Every fact is removable RIGHT HERE — owning your profile shouldn't require
-// scrolling chat history for the receipt (the ✕ uses the same undo path).
-function FactList({ facts, onRemove, busy }: { facts: AboutFact[]; onRemove: (f: AboutFact) => void; busy: boolean }) {
+// The About You panel, per the approved mockups: a navy TWIN CARD with the gold
+// completeness meter up top, then the profile as GROUPED, REMOVABLE CHIPS —
+// the living proof that Ollie remembers. Facts still shaping the shortlist are
+// solid; captured-but-not-scored facts are dashed (honesty preserved), and the
+// meter's next hint becomes a visible "tell Ollie" prompt card.
+
+const GROUPS: { key: string; label: string; match: (f: AboutFact) => boolean }[] = [
+  { key: "about", label: "About you", match: (f) => f.category === "academic" || f.category === "background" },
+  { key: "interests", label: "Interests & activities", match: (f) => f.category === "interest" },
+  {
+    key: "fit",
+    label: "What fits you",
+    match: (f) => ["preference", "financial", "constraint", "goal", "athlete", "circumstance", "wish"].includes(f.category),
+  },
+];
+
+function Chip({
+  fact,
+  scoring,
+  onRemove,
+  busy,
+  index,
+}: {
+  fact: AboutFact;
+  scoring: boolean;
+  onRemove: (f: AboutFact) => void;
+  busy: boolean;
+  index: number;
+}) {
   return (
-    <ul className="space-y-2">
-      {facts.map((f, i) => (
-        <motion.li
-          key={`${f.label}-${i}`}
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.24, delay: i * 0.04 }}
-          className="group flex items-baseline gap-2 text-sm leading-snug"
-        >
-          <span className="min-w-0">
-            <span className="text-muted-foreground">{f.label}</span>{" "}
-            <span className="font-medium text-foreground">{f.value}</span>
-          </span>
-          <button
-            type="button"
-            aria-label={`Remove ${f.label}`}
-            disabled={busy}
-            onClick={() => onRemove(f)}
-            className="text-[10px] text-muted-foreground/50 transition-colors hover:text-loss disabled:opacity-40"
-          >
-            ✕
-          </button>
-        </motion.li>
-      ))}
-    </ul>
+    <motion.span
+      layout
+      initial={{ opacity: 0, scale: 0.9, y: 6 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.9 }}
+      transition={{ duration: 0.22, delay: index * 0.03, ease: [0.22, 1, 0.36, 1] }}
+      title={scoring ? "Shaping your shortlist" : "Noted — not shaping your list yet; tell Ollie if it should"}
+      className={`inline-flex max-w-full items-center gap-1.5 rounded-full py-1.5 pl-3 pr-2 text-xs leading-none ${
+        scoring
+          ? "bg-accent text-accent-foreground"
+          : "border border-dashed border-border bg-transparent text-muted-foreground"
+      }`}
+    >
+      <span className="truncate">
+        <span className={scoring ? "text-muted-foreground" : "text-muted-foreground/70"}>{fact.label}</span>{" "}
+        <span className={`font-bold ${scoring ? "text-foreground" : "text-muted-foreground"}`}>{fact.value}</span>
+      </span>
+      <button
+        type="button"
+        aria-label={`Remove ${fact.label}`}
+        disabled={busy}
+        onClick={() => onRemove(fact)}
+        className="flex size-4 shrink-0 items-center justify-center rounded-full text-[9px] text-muted-foreground/60 transition-colors hover:bg-loss/10 hover:text-loss disabled:opacity-40"
+      >
+        ✕
+      </button>
+    </motion.span>
   );
 }
 
-// What Ollie knows about the learner — split honestly into what's shaping the
-// shortlist and what's captured but not yet influencing it. The learner can then
-// tell Ollie in the chat to factor something in.
 export function OllieAbout({ refreshKey, onProfileChanged }: { refreshKey: number; onProfileChanged?: () => void }) {
   const [view, setView] = useState<AboutView | null>(null);
   const [loading, startLoad] = useTransition();
@@ -68,65 +93,92 @@ export function OllieAbout({ refreshKey, onProfileChanged }: { refreshKey: numbe
   };
 
   const empty = view && view.using.length === 0 && view.noted.length === 0;
-
   const meter = view?.completeness;
+  const scoringSet = new Set(view?.using ?? []);
+  const all = view ? [...view.using, ...view.noted] : [];
+  const grouped = GROUPS.map((g) => ({ ...g, facts: all.filter(g.match) })).filter((g) => g.facts.length > 0);
+  const other = all.filter((f) => !GROUPS.some((g) => g.match(f)));
 
   return (
     <div className="flex h-full flex-col">
+      {/* The twin card — navy, gold meter, per the mockup. This is the product's
+          memory made visible. */}
       {meter && !empty && (
         <div className="px-4 pt-3">
           <div
             className="glossy relative overflow-hidden rounded-2xl p-4 text-white"
-            style={{ background: "linear-gradient(135deg, oklch(0.3 0.09 300), oklch(0.24 0.05 300))" }}
+            style={{ background: "linear-gradient(140deg, var(--navy), oklch(0.31 0.055 280))" }}
           >
-            <p className="text-sm font-semibold">Your profile so far</p>
-            <p className="mt-0.5 text-[11px] text-white/60">Built from your chats with Ollie</p>
-            <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/15">
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -right-10 -top-14 size-40 rounded-full"
+              style={{ background: "radial-gradient(circle, oklch(0.62 0.24 303 / 0.35), transparent 70%)" }}
+            />
+            <div className="flex items-baseline justify-between gap-3">
+              <p className="text-sm font-bold">Ollie knows {meter.knownCount} thing{meter.knownCount === 1 ? "" : "s"} about you</p>
+              <p className="text-lg font-black tabular-nums text-gold">{meter.percent}%</p>
+            </div>
+            <p className="mt-0.5 text-[11px] text-white/60">Built from your chats — every bit of it yours to change</p>
+            <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/15">
               <motion.div
-                className="h-full rounded-full bg-gold"
+                className="h-full rounded-full"
+                style={{ background: "linear-gradient(90deg, var(--gold), oklch(0.8 0.11 90))" }}
                 initial={{ width: 0 }}
                 animate={{ width: `${meter.percent}%` }}
-                transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
               />
             </div>
-            <p className="mt-2 text-[11px] text-white/80">
-              <span className="font-bold text-gold">{meter.percent}% complete.</span> {meter.nextHint}
-            </p>
           </div>
         </div>
       )}
-      <div className="flex-1 overflow-y-auto px-5 py-5">
+
+      <div className="flex-1 overflow-y-auto px-4 py-4">
         {!view && loading && <PanelListSkeleton rows={3} />}
 
         {empty && (
-          <p className="text-sm leading-relaxed text-muted-foreground">
-            I don&apos;t know anything about you yet — tell me about your studies, budget, or what you&apos;re
-            looking for and it&apos;ll show up here.
-          </p>
+          <div className="px-1 py-4">
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              Nothing here yet — this page fills itself as you talk. Tell Ollie anything: what you enjoy,
+              where you&apos;d love to live, what you can spend.
+            </p>
+          </div>
         )}
 
         {view && !empty && (
-          <div className="space-y-6">
-            {view.using.length > 0 && (
-              <section>
-                <p className="text-[11px] font-black uppercase text-primary">Shaping your shortlist</p>
-                <p className="mt-1 mb-3 text-xs leading-relaxed text-muted-foreground">
-                  These are what I&apos;m weighing right now.
-                </p>
-                <FactList facts={view.using} onRemove={removeFact} busy={busy} />
+          <div className="space-y-5">
+            {[...grouped, ...(other.length ? [{ key: "other", label: "Also noted", facts: other }] : [])].map((g) => (
+              <section key={g.key}>
+                <p className="mb-2 text-[10px] font-black uppercase text-muted-foreground">{g.label}</p>
+                <div className="flex flex-wrap gap-1.5">
+                  <AnimatePresence>
+                    {g.facts.map((f, i) => (
+                      <Chip
+                        key={`${f.category}/${f.name}/${f.value}`}
+                        fact={f}
+                        scoring={scoringSet.has(f)}
+                        onRemove={removeFact}
+                        busy={busy}
+                        index={i}
+                      />
+                    ))}
+                  </AnimatePresence>
+                </div>
               </section>
+            ))}
+
+            {/* The missing-item prompt — the meter's next hint made actionable */}
+            {meter && meter.percent < 100 && (
+              <div className="rounded-2xl border border-primary/25 bg-primary/5 px-4 py-3">
+                <p className="text-[10px] font-black uppercase text-primary">One thing would sharpen this</p>
+                <p className="mt-1 text-xs leading-relaxed text-foreground">{meter.nextHint}</p>
+                <p className="mt-1 text-[11px] text-muted-foreground">Just say it in the chat — it lands here on its own.</p>
+              </div>
             )}
 
-            {view.noted.length > 0 && (
-              <section>
-                <p className="text-[11px] font-black uppercase text-muted-foreground">Also noted</p>
-                <p className="mt-1 mb-3 text-xs leading-relaxed text-muted-foreground">
-                  I&apos;ve got these but they&apos;re not shaping your list yet. If one should, just tell me in
-                  the chat.
-                </p>
-                <FactList facts={view.noted} onRemove={removeFact} busy={busy} />
-              </section>
-            )}
+            <p className="flex items-center gap-3 border-t border-border/60 pt-3 text-[10px] leading-relaxed text-muted-foreground">
+              <span className="inline-flex items-center gap-1"><span className="inline-block size-2 rounded-full bg-accent" aria-hidden />shaping your list</span>
+              <span className="inline-flex items-center gap-1"><span className="inline-block size-2 rounded-full border border-dashed border-border" aria-hidden />noted, not scored yet</span>
+            </p>
           </div>
         )}
       </div>
