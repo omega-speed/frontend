@@ -3,14 +3,15 @@
 import { useEffect, useState, useTransition } from "react";
 import { PanelListSkeleton } from "./panel-bits";
 import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import { confirmDeclare, getAbout, undoDeclare } from "../service";
 import type { AboutFact, AboutView } from "../types";
 
-// The About You panel, per the approved mockups: a navy TWIN CARD with the gold
-// completeness meter up top, then the profile as GROUPED, REMOVABLE CHIPS —
-// the living proof that Ollie remembers. Facts still shaping the shortlist are
-// solid; captured-but-not-scored facts are dashed (honesty preserved), and the
-// meter's next hint becomes a visible "tell Ollie" prompt card.
+// The About You panel: a navy TWIN CARD with the gold completeness meter, then
+// the profile as GROUPED CHIPS. Tapping a chip opens a small anchored EDITOR —
+// a real input, Save with a visible loading state, and Remove behind a
+// two-step confirm. Failures revert and say so; nothing edits silently.
 
 const GROUPS: { key: string; label: string; match: (f: AboutFact) => boolean }[] = [
   { key: "about", label: "About you", match: (f) => f.category === "academic" || f.category === "background" },
@@ -22,46 +23,117 @@ const GROUPS: { key: string; label: string; match: (f: AboutFact) => boolean }[]
   },
 ];
 
-function Chip({
+const keyOf = (f: AboutFact) => `${f.category}/${f.name}`;
+
+function ChipEditor({
   fact,
-  scoring,
+  saving,
+  onSave,
   onRemove,
-  onEdit,
-  busy,
-  index,
+  onClose,
 }: {
   fact: AboutFact;
-  scoring: boolean;
-  onRemove: (f: AboutFact) => void;
-  onEdit: (f: AboutFact, text: string) => void;
-  busy: boolean;
-  index: number;
+  saving: boolean;
+  onSave: (text: string) => void;
+  onRemove: () => void;
+  onClose: () => void;
 }) {
-  const [editing, setEditing] = useState(false);
-  const [text, setText] = useState("");
-  if (editing) {
-    return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-primary/50 bg-card py-1 pl-3 pr-1.5 text-xs">
-        <span className="text-muted-foreground">{fact.label}</span>
+  const [text, setText] = useState(fact.value);
+  const [confirmingRemove, setConfirmingRemove] = useState(false);
+  const isList = Array.isArray(fact.rawValue);
+  const isNumber = typeof fact.rawValue === "number";
+  const invalid = isNumber && !Number.isFinite(Number(text));
+
+  return (
+    <>
+      <button type="button" aria-label="Close" onClick={onClose} className="fixed inset-0 z-40 cursor-default" tabIndex={-1} />
+      <motion.div
+        initial={{ opacity: 0, y: 6, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 6, scale: 0.98 }}
+        transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+        className="absolute left-0 top-9 z-50 w-72 rounded-2xl border border-border bg-card p-4 shadow-lg"
+      >
+        <p className="text-[10px] font-black uppercase text-primary">{fact.label}</p>
         <input
           autoFocus
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === "Enter" && text.trim()) {
-              onEdit(fact, text.trim());
-              setEditing(false);
-            }
-            if (e.key === "Escape") setEditing(false);
+            if (e.key === "Enter" && text.trim() && !invalid && !saving) onSave(text.trim());
+            if (e.key === "Escape") onClose();
           }}
-          onBlur={() => setEditing(false)}
-          className="w-28 bg-transparent font-bold text-foreground outline-none placeholder:text-muted-foreground/40"
-          placeholder={fact.value}
+          disabled={saving}
+          className="mt-2 h-9 w-full rounded-full border border-input bg-background px-3.5 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 disabled:opacity-60"
         />
-        <span className="text-[9px] text-muted-foreground/60">↵</span>
-      </span>
-    );
-  }
+        <p className="mt-1.5 text-[10px] leading-relaxed text-muted-foreground">
+          {invalid
+            ? "This one is a number — digits only."
+            : isList
+              ? "Separate several with commas — all of them are kept."
+              : "Changing this re-sorts your schools. History is kept; nothing is ever lost."}
+        </p>
+
+        <div className="mt-3 flex items-center gap-2">
+          <Button
+            size="sm"
+            className="rounded-full"
+            loading={saving}
+            disabled={!text.trim() || invalid || text.trim() === fact.value}
+            onClick={() => onSave(text.trim())}
+          >
+            Save
+          </Button>
+          <Button size="sm" variant="ghost" className="rounded-full" disabled={saving} onClick={onClose}>
+            Cancel
+          </Button>
+          {!confirmingRemove ? (
+            <button
+              type="button"
+              disabled={saving}
+              onClick={() => setConfirmingRemove(true)}
+              className="ml-auto text-[11px] font-semibold text-muted-foreground transition-colors hover:text-loss disabled:opacity-40"
+            >
+              Remove
+            </button>
+          ) : (
+            <span className="ml-auto flex items-center gap-2 text-[11px]">
+              <span className="text-muted-foreground">Sure?</span>
+              <button type="button" disabled={saving} onClick={onRemove} className="font-bold text-loss hover:opacity-80 disabled:opacity-40">
+                Yes, remove
+              </button>
+              <button type="button" disabled={saving} onClick={() => setConfirmingRemove(false)} className="font-semibold text-muted-foreground hover:text-foreground">
+                Keep
+              </button>
+            </span>
+          )}
+        </div>
+      </motion.div>
+    </>
+  );
+}
+
+function Chip({
+  fact,
+  scoring,
+  editing,
+  saving,
+  onOpen,
+  onSave,
+  onRemove,
+  onClose,
+  index,
+}: {
+  fact: AboutFact;
+  scoring: boolean;
+  editing: boolean;
+  saving: boolean;
+  onOpen: () => void;
+  onSave: (text: string) => void;
+  onRemove: () => void;
+  onClose: () => void;
+  index: number;
+}) {
   return (
     <motion.span
       layout
@@ -69,35 +141,30 @@ function Chip({
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.9 }}
       transition={{ duration: 0.22, delay: index * 0.03, ease: [0.22, 1, 0.36, 1] }}
-      title={scoring ? "Shaping your shortlist" : "Noted — not shaping your list yet; tell Ollie if it should"}
-      className={`inline-flex max-w-full items-center gap-1.5 rounded-full py-1.5 pl-3 pr-2 text-xs leading-none ${
-        scoring
-          ? "bg-accent text-accent-foreground"
-          : "border border-dashed border-border bg-transparent text-muted-foreground"
-      }`}
+      className="relative inline-flex max-w-full"
     >
       <button
         type="button"
-        disabled={busy}
-        onClick={() => {
-          setText(fact.value);
-          setEditing(true);
-        }}
-        title="Tap to change it"
-        className="min-w-0 truncate text-left disabled:opacity-60"
+        onClick={onOpen}
+        disabled={saving}
+        title={scoring ? "Shaping your shortlist — tap to change it" : "Noted, not scored yet — tap to change it"}
+        className={`inline-flex max-w-full items-center gap-1.5 rounded-full py-1.5 px-3 text-xs leading-none transition-all ${
+          editing ? "ring-2 ring-ring/40" : ""
+        } ${
+          scoring
+            ? "bg-accent text-accent-foreground hover:bg-primary/15"
+            : "border border-dashed border-border bg-transparent text-muted-foreground hover:border-primary/40"
+        } ${saving ? "opacity-70" : ""}`}
       >
-        <span className={scoring ? "text-muted-foreground" : "text-muted-foreground/70"}>{fact.label}</span>{" "}
-        <span className={`font-bold ${scoring ? "text-foreground" : "text-muted-foreground"}`}>{fact.value}</span>
+        <span className="min-w-0 truncate">
+          <span className={scoring ? "text-muted-foreground" : "text-muted-foreground/70"}>{fact.label}</span>{" "}
+          <span className={`font-bold ${scoring ? "text-foreground" : "text-muted-foreground"}`}>{fact.value}</span>
+        </span>
+        {saving && <span className="size-1.5 shrink-0 animate-pulse rounded-full bg-primary" aria-hidden />}
       </button>
-      <button
-        type="button"
-        aria-label={`Remove ${fact.label}`}
-        disabled={busy}
-        onClick={() => onRemove(fact)}
-        className="flex size-4 shrink-0 items-center justify-center rounded-full text-[9px] text-muted-foreground/60 transition-colors hover:bg-loss/10 hover:text-loss disabled:opacity-40"
-      >
-        ✕
-      </button>
+      <AnimatePresence>
+        {editing && <ChipEditor fact={fact} saving={saving} onSave={onSave} onRemove={onRemove} onClose={onClose} />}
+      </AnimatePresence>
     </motion.span>
   );
 }
@@ -105,7 +172,8 @@ function Chip({
 export function OllieAbout({ refreshKey, onProfileChanged }: { refreshKey: number; onProfileChanged?: () => void }) {
   const [view, setView] = useState<AboutView | null>(null);
   const [loading, startLoad] = useTransition();
-  const [busy, startBusy] = useTransition();
+  const [editingKey, setEditingKey] = useState<string | null>(null);
+  const [savingKey, setSavingKey] = useState<string | null>(null);
 
   useEffect(() => {
     startLoad(async () => {
@@ -114,23 +182,14 @@ export function OllieAbout({ refreshKey, onProfileChanged }: { refreshKey: numbe
     });
   }, [refreshKey]);
 
-  // Remove a fact from HERE: optimistic, same undo path as the chat receipt,
-  // then the panels re-score off the changed profile.
-  const removeFact = (f: AboutFact) => {
-    setView((v) =>
-      v
-        ? { ...v, using: v.using.filter((x) => x !== f), noted: v.noted.filter((x) => x !== f) }
-        : v,
-    );
-    startBusy(async () => {
-      await undoDeclare([{ category: f.category, name: f.name, value: f.rawValue, label: `${f.label} → ${f.value}` }]);
-      onProfileChanged?.();
-    });
+  const reload = async () => {
+    const res = await getAbout();
+    if (res.ok) setView(res.view);
   };
 
-  // Edit in place: the new value supersedes on the twin (history kept) with the
-  // fact's original protection level, then everything re-scores.
-  const editFact = (f: AboutFact, text: string) => {
+  // Save an edit: the chip shows its saving pulse until the twin write returns;
+  // failure reverts the panel and says so — never a silent maybe.
+  const saveFact = async (f: AboutFact, text: string) => {
     let value: unknown = text;
     if (typeof f.rawValue === "number") {
       const n = Number(text);
@@ -140,27 +199,35 @@ export function OllieAbout({ refreshKey, onProfileChanged }: { refreshKey: numbe
       value = text.split(",").map((x) => x.trim()).filter(Boolean);
     }
     const shown = Array.isArray(value) ? value.join(", ") : String(value);
-    setView((v) =>
-      v
-        ? {
-            ...v,
-            using: v.using.map((x) => (x === f ? { ...x, value: shown, rawValue: value } : x)),
-            noted: v.noted.map((x) => (x === f ? { ...x, value: shown, rawValue: value } : x)),
-          }
-        : v,
-    );
-    startBusy(async () => {
-      await confirmDeclare([
-        {
-          category: f.category,
-          name: f.name,
-          value,
-          label: `${f.label} → ${shown}`,
-          ...(f.sensitive ? { sensitivity: "SENSITIVE" as const } : {}),
-        },
-      ]);
+    setEditingKey(null);
+    setSavingKey(keyOf(f));
+    const res = await confirmDeclare([
+      { category: f.category, name: f.name, value, label: `${f.label} → ${shown}`, ...(f.sensitive ? { sensitivity: "SENSITIVE" as const } : {}) },
+    ]);
+    setSavingKey(null);
+    if (res.ok) {
+      toast.success(`${f.label} updated — your list is re-sorting`);
+      await reload();
       onProfileChanged?.();
-    });
+    } else {
+      toast.error(res.message || "That didn't save — nothing was changed.");
+      await reload();
+    }
+  };
+
+  const removeFact = async (f: AboutFact) => {
+    setEditingKey(null);
+    setSavingKey(keyOf(f));
+    const res = await undoDeclare([{ category: f.category, name: f.name, value: f.rawValue, label: `${f.label} → ${f.value}` }]);
+    setSavingKey(null);
+    if (res.ok) {
+      toast.success(`${f.label} removed`);
+      await reload();
+      onProfileChanged?.();
+    } else {
+      toast.error(res.message || "That didn't go through — the detail is still there.");
+      await reload();
+    }
   };
 
   const empty = view && view.using.length === 0 && view.noted.length === 0;
@@ -172,8 +239,7 @@ export function OllieAbout({ refreshKey, onProfileChanged }: { refreshKey: numbe
 
   return (
     <div className="flex h-full flex-col">
-      {/* The twin card — navy, gold meter, per the mockup. This is the product's
-          memory made visible. */}
+      {/* The twin card — navy, gold meter: the product's memory made visible. */}
       {meter && !empty && (
         <div className="px-4 pt-3">
           <div
@@ -189,7 +255,7 @@ export function OllieAbout({ refreshKey, onProfileChanged }: { refreshKey: numbe
               <p className="text-sm font-bold">Ollie knows {meter.knownCount} thing{meter.knownCount === 1 ? "" : "s"} about you</p>
               <p className="text-lg font-black tabular-nums text-gold">{meter.percent}%</p>
             </div>
-            <p className="mt-0.5 text-[11px] text-white/60">Built from your chats — every bit of it yours to change</p>
+            <p className="mt-0.5 text-[11px] text-white/60">Built from your chats — tap any detail below to change it</p>
             <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/15">
               <motion.div
                 className="h-full rounded-full"
@@ -224,12 +290,15 @@ export function OllieAbout({ refreshKey, onProfileChanged }: { refreshKey: numbe
                   <AnimatePresence>
                     {g.facts.map((f, i) => (
                       <Chip
-                        key={`${f.category}/${f.name}/${f.value}`}
+                        key={keyOf(f)}
                         fact={f}
                         scoring={scoringSet.has(f)}
-                        onRemove={removeFact}
-                        onEdit={editFact}
-                        busy={busy}
+                        editing={editingKey === keyOf(f)}
+                        saving={savingKey === keyOf(f)}
+                        onOpen={() => setEditingKey(editingKey === keyOf(f) ? null : keyOf(f))}
+                        onSave={(text) => void saveFact(f, text)}
+                        onRemove={() => void removeFact(f)}
+                        onClose={() => setEditingKey(null)}
                         index={i}
                       />
                     ))}
