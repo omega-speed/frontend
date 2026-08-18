@@ -3,7 +3,7 @@
 import { useEffect, useState, useTransition } from "react";
 import { PanelListSkeleton } from "./panel-bits";
 import { motion, AnimatePresence } from "framer-motion";
-import { getAbout, undoDeclare } from "../service";
+import { confirmDeclare, getAbout, undoDeclare } from "../service";
 import type { AboutFact, AboutView } from "../types";
 
 // The About You panel, per the approved mockups: a navy TWIN CARD with the gold
@@ -26,15 +26,42 @@ function Chip({
   fact,
   scoring,
   onRemove,
+  onEdit,
   busy,
   index,
 }: {
   fact: AboutFact;
   scoring: boolean;
   onRemove: (f: AboutFact) => void;
+  onEdit: (f: AboutFact, text: string) => void;
   busy: boolean;
   index: number;
 }) {
+  const [editing, setEditing] = useState(false);
+  const [text, setText] = useState("");
+  if (editing) {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full border border-primary/50 bg-card py-1 pl-3 pr-1.5 text-xs">
+        <span className="text-muted-foreground">{fact.label}</span>
+        <input
+          autoFocus
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && text.trim()) {
+              onEdit(fact, text.trim());
+              setEditing(false);
+            }
+            if (e.key === "Escape") setEditing(false);
+          }}
+          onBlur={() => setEditing(false)}
+          className="w-28 bg-transparent font-bold text-foreground outline-none placeholder:text-muted-foreground/40"
+          placeholder={fact.value}
+        />
+        <span className="text-[9px] text-muted-foreground/60">↵</span>
+      </span>
+    );
+  }
   return (
     <motion.span
       layout
@@ -49,10 +76,19 @@ function Chip({
           : "border border-dashed border-border bg-transparent text-muted-foreground"
       }`}
     >
-      <span className="truncate">
+      <button
+        type="button"
+        disabled={busy}
+        onClick={() => {
+          setText(fact.value);
+          setEditing(true);
+        }}
+        title="Tap to change it"
+        className="min-w-0 truncate text-left disabled:opacity-60"
+      >
         <span className={scoring ? "text-muted-foreground" : "text-muted-foreground/70"}>{fact.label}</span>{" "}
         <span className={`font-bold ${scoring ? "text-foreground" : "text-muted-foreground"}`}>{fact.value}</span>
-      </span>
+      </button>
       <button
         type="button"
         aria-label={`Remove ${fact.label}`}
@@ -88,6 +124,41 @@ export function OllieAbout({ refreshKey, onProfileChanged }: { refreshKey: numbe
     );
     startBusy(async () => {
       await undoDeclare([{ category: f.category, name: f.name, value: f.rawValue, label: `${f.label} → ${f.value}` }]);
+      onProfileChanged?.();
+    });
+  };
+
+  // Edit in place: the new value supersedes on the twin (history kept) with the
+  // fact's original protection level, then everything re-scores.
+  const editFact = (f: AboutFact, text: string) => {
+    let value: unknown = text;
+    if (typeof f.rawValue === "number") {
+      const n = Number(text);
+      if (!Number.isFinite(n)) return;
+      value = n;
+    } else if (Array.isArray(f.rawValue)) {
+      value = text.split(",").map((x) => x.trim()).filter(Boolean);
+    }
+    const shown = Array.isArray(value) ? value.join(", ") : String(value);
+    setView((v) =>
+      v
+        ? {
+            ...v,
+            using: v.using.map((x) => (x === f ? { ...x, value: shown, rawValue: value } : x)),
+            noted: v.noted.map((x) => (x === f ? { ...x, value: shown, rawValue: value } : x)),
+          }
+        : v,
+    );
+    startBusy(async () => {
+      await confirmDeclare([
+        {
+          category: f.category,
+          name: f.name,
+          value,
+          label: `${f.label} → ${shown}`,
+          ...(f.sensitive ? { sensitivity: "SENSITIVE" as const } : {}),
+        },
+      ]);
       onProfileChanged?.();
     });
   };
@@ -157,6 +228,7 @@ export function OllieAbout({ refreshKey, onProfileChanged }: { refreshKey: numbe
                         fact={f}
                         scoring={scoringSet.has(f)}
                         onRemove={removeFact}
+                        onEdit={editFact}
                         busy={busy}
                         index={i}
                       />
@@ -178,6 +250,7 @@ export function OllieAbout({ refreshKey, onProfileChanged }: { refreshKey: numbe
             <p className="flex items-center gap-3 border-t border-border/60 pt-3 text-[10px] leading-relaxed text-muted-foreground">
               <span className="inline-flex items-center gap-1"><span className="inline-block size-2 rounded-full bg-accent" aria-hidden />shaping your list</span>
               <span className="inline-flex items-center gap-1"><span className="inline-block size-2 rounded-full border border-dashed border-border" aria-hidden />noted, not scored yet</span>
+              <span className="ml-auto">tap a chip to change it</span>
             </p>
           </div>
         )}

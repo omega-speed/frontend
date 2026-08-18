@@ -173,6 +173,7 @@ export interface AboutFact {
   category: string;
   name: string;
   rawValue: unknown;
+  sensitive: boolean;
 }
 
 export interface AboutView {
