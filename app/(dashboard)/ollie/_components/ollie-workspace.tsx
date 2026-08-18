@@ -91,7 +91,7 @@ export function OllieWorkspace({
             </Button>
           </div>
           <div className="h-[calc(100%-2.5rem)] lg:h-full">
-            <OlliePanel refreshKey={refreshKey} refreshing={refreshing} initialTab={initialPanel} tabRequest={tabRequest} justUpdated={justUpdated} />
+            <OlliePanel refreshKey={refreshKey} refreshing={refreshing} initialTab={initialPanel} tabRequest={tabRequest} justUpdated={justUpdated} onProfileChanged={bump} />
           </div>
         </aside>
       </div>

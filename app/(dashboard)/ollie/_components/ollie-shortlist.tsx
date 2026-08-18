@@ -119,7 +119,7 @@ function Row({
 }: {
   item: ShortlistItem;
   index: number;
-  onCommit?: (item: ShortlistItem, action: "commit" | "uncommit") => void;
+  onCommit?: (item: ShortlistItem, action: "add" | "remove" | "commit" | "uncommit") => void;
   committing?: boolean;
 }) {
   const c = item.committed ? { label: "Your school", color: "var(--primary)" } : (CATEGORY[item.category ?? ""] ?? CATEGORY.HIGH_UNCERTAINTY);
@@ -227,14 +227,35 @@ function Row({
                   ))}
                 </dl>
                 {onCommit && item.institutionId && !item.committed && (
-                  <button
-                    type="button"
-                    disabled={committing}
-                    onClick={() => onCommit(item, "commit")}
-                    className="mt-3 rounded-full border border-primary/40 px-3 py-1 text-[11px] font-semibold text-primary transition-colors hover:bg-primary hover:text-primary-foreground disabled:opacity-40"
-                  >
-                    This is my school — commit
-                  </button>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      disabled={committing}
+                      onClick={() => onCommit(item, "commit")}
+                      className="rounded-full border border-primary/40 px-3 py-1 text-[11px] font-semibold text-primary transition-colors hover:bg-primary hover:text-primary-foreground disabled:opacity-40"
+                    >
+                      This is my school — commit
+                    </button>
+                    {item.category !== "PINNED" && (
+                      <button
+                        type="button"
+                        disabled={committing}
+                        onClick={() => onCommit(item, "add")}
+                        className="rounded-full border border-border px-3 py-1 text-[11px] font-semibold text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary disabled:opacity-40"
+                      >
+                        Keep on my list
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      disabled={committing}
+                      onClick={() => onCommit(item, "remove")}
+                      title="Takes it off and keeps it off — you can always add it back by name"
+                      className="rounded-full border border-border px-3 py-1 text-[11px] font-semibold text-muted-foreground transition-colors hover:border-loss/50 hover:text-loss disabled:opacity-40"
+                    >
+                      Not for me
+                    </button>
+                  </div>
                 )}
               </motion.div>
             )}
@@ -261,7 +282,7 @@ export function OllieShortlist({ refreshKey, refreshing = false }: { refreshKey:
 
   // Commit / take it back, then re-read — the decision is the learner's alone,
   // recorded on their twin exactly like saying it to Ollie.
-  const onCommit = (item: ShortlistItem, action: "commit" | "uncommit") => {
+  const onCommit = (item: ShortlistItem, action: "add" | "remove" | "commit" | "uncommit") => {
     if (!item.institutionId) return;
     startCommit(async () => {
       const res = await commitSchool(item.institutionId!, action);

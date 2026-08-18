@@ -3,10 +3,12 @@
 import { useEffect, useState, useTransition } from "react";
 import { PanelListSkeleton } from "./panel-bits";
 import { motion } from "framer-motion";
-import { getAbout } from "../service";
+import { getAbout, undoDeclare } from "../service";
 import type { AboutFact, AboutView } from "../types";
 
-function FactList({ facts }: { facts: AboutFact[] }) {
+// Every fact is removable RIGHT HERE — owning your profile shouldn't require
+// scrolling chat history for the receipt (the ✕ uses the same undo path).
+function FactList({ facts, onRemove, busy }: { facts: AboutFact[]; onRemove: (f: AboutFact) => void; busy: boolean }) {
   return (
     <ul className="space-y-2">
       {facts.map((f, i) => (
@@ -15,10 +17,21 @@ function FactList({ facts }: { facts: AboutFact[] }) {
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.24, delay: i * 0.04 }}
-          className="text-sm leading-snug"
+          className="group flex items-baseline gap-2 text-sm leading-snug"
         >
-          <span className="text-muted-foreground">{f.label}</span>{" "}
-          <span className="font-medium text-foreground">{f.value}</span>
+          <span className="min-w-0">
+            <span className="text-muted-foreground">{f.label}</span>{" "}
+            <span className="font-medium text-foreground">{f.value}</span>
+          </span>
+          <button
+            type="button"
+            aria-label={`Remove ${f.label}`}
+            disabled={busy}
+            onClick={() => onRemove(f)}
+            className="text-[10px] text-muted-foreground/50 transition-colors hover:text-loss disabled:opacity-40"
+          >
+            ✕
+          </button>
         </motion.li>
       ))}
     </ul>
@@ -28,9 +41,10 @@ function FactList({ facts }: { facts: AboutFact[] }) {
 // What Ollie knows about the learner — split honestly into what's shaping the
 // shortlist and what's captured but not yet influencing it. The learner can then
 // tell Ollie in the chat to factor something in.
-export function OllieAbout({ refreshKey }: { refreshKey: number }) {
+export function OllieAbout({ refreshKey, onProfileChanged }: { refreshKey: number; onProfileChanged?: () => void }) {
   const [view, setView] = useState<AboutView | null>(null);
   const [loading, startLoad] = useTransition();
+  const [busy, startBusy] = useTransition();
 
   useEffect(() => {
     startLoad(async () => {
@@ -38,6 +52,20 @@ export function OllieAbout({ refreshKey }: { refreshKey: number }) {
       if (res.ok) setView(res.view);
     });
   }, [refreshKey]);
+
+  // Remove a fact from HERE: optimistic, same undo path as the chat receipt,
+  // then the panels re-score off the changed profile.
+  const removeFact = (f: AboutFact) => {
+    setView((v) =>
+      v
+        ? { ...v, using: v.using.filter((x) => x !== f), noted: v.noted.filter((x) => x !== f) }
+        : v,
+    );
+    startBusy(async () => {
+      await undoDeclare([{ category: f.category, name: f.name, value: f.rawValue, label: `${f.label} → ${f.value}` }]);
+      onProfileChanged?.();
+    });
+  };
 
   const empty = view && view.using.length === 0 && view.noted.length === 0;
 
@@ -85,7 +113,7 @@ export function OllieAbout({ refreshKey }: { refreshKey: number }) {
                 <p className="mt-1 mb-3 text-xs leading-relaxed text-muted-foreground">
                   These are what I&apos;m weighing right now.
                 </p>
-                <FactList facts={view.using} />
+                <FactList facts={view.using} onRemove={removeFact} busy={busy} />
               </section>
             )}
 
@@ -96,7 +124,7 @@ export function OllieAbout({ refreshKey }: { refreshKey: number }) {
                   I&apos;ve got these but they&apos;re not shaping your list yet. If one should, just tell me in
                   the chat.
                 </p>
-                <FactList facts={view.noted} />
+                <FactList facts={view.noted} onRemove={removeFact} busy={busy} />
               </section>
             )}
           </div>

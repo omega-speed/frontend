@@ -27,6 +27,7 @@ export function OlliePanel({
   initialTab,
   tabRequest,
   justUpdated = false,
+  onProfileChanged,
 }: {
   refreshKey: number;
   refreshing?: boolean;
@@ -34,6 +35,8 @@ export function OlliePanel({
   // v3 artifact moment: chat cards jump the panel to a tab.
   tabRequest?: { tab: string; n: number } | null;
   justUpdated?: boolean;
+  // About-tab fact removal changed the profile → the workspace re-scores.
+  onProfileChanged?: () => void;
 }) {
   const [tab, setTab] = useState<Tab>(isTab(initialTab) ? initialTab : "shortlist");
   // Keep-alive tabs: a tab MOUNTS the first time it's opened and then stays
@@ -132,7 +135,7 @@ export function OlliePanel({
             data-active={tab === "about"}
             className="panel-pane h-full"
           >
-            <OllieAbout refreshKey={refreshKey} />
+            <OllieAbout refreshKey={refreshKey} onProfileChanged={onProfileChanged} />
           </div>
         )}
       </div>

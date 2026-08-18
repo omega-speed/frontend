@@ -39,7 +39,7 @@ export async function confirmDeclare(declarations: Declaration[]): Promise<AskRe
 // same twin decision the chat path writes, just without a chat turn.
 export async function commitSchool(
   institutionId: string,
-  action: "commit" | "uncommit",
+  action: "add" | "remove" | "commit" | "uncommit",
 ): Promise<{ ok: boolean; message?: string }> {
   const user = await getCurrentUser();
   if (!user) return { ok: false, message: "Please sign in again." };

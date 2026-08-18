@@ -169,6 +169,10 @@ export interface JourneyView {
 export interface AboutFact {
   label: string;
   value: string;
+  // Twin address + raw value — removal/correction works FROM this tab.
+  category: string;
+  name: string;
+  rawValue: unknown;
 }
 
 export interface AboutView {
