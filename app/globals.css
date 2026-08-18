@@ -337,6 +337,12 @@
   outline-offset: 2px;
 }
 
+/* Loading indicators appear only when a wait is REAL: invisible for the first
+   150ms, then a quick fade — a sub-150ms save never flashes a spinner. */
+@keyframes appear-after { from { opacity: 0 } to { opacity: 1 } }
+.appear-delayed { opacity: 0; animation: appear-after 0.18s ease-out 0.15s forwards; }
+[data-calm] .appear-delayed { animation-delay: 0s; animation-duration: 0.01ms; }
+
 /* Press feedback for pill chips/tabs: respond on pointer-DOWN with a subtle
    scale; hover lift only on devices that truly hover (touch taps fake hover). */
 .press {

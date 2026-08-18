@@ -3,6 +3,8 @@
 import { useEffect, useState, useTransition } from "react";
 import { PanelListSkeleton } from "./panel-bits";
 import { motion, AnimatePresence } from "framer-motion";
+import { Loader2 } from "lucide-react";
+import { useCalm } from "@/components/molecules/calm-provider";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { confirmDeclare, getAbout, undoDeclare } from "../service";
@@ -74,38 +76,48 @@ function ChipEditor({
               : "Changing this re-sorts your schools. History is kept; nothing is ever lost."}
         </p>
 
-        <div className="mt-3 flex items-center gap-2">
-          <Button
-            size="sm"
-            className="rounded-full"
-            loading={saving}
-            disabled={!text.trim() || invalid || text.trim() === fact.value}
-            onClick={() => onSave(text.trim())}
-          >
-            Save
-          </Button>
-          <Button size="sm" variant="ghost" className="rounded-full" disabled={saving} onClick={onClose}>
-            Cancel
-          </Button>
+        <Button
+          size="sm"
+          className="mt-3 w-full rounded-full"
+          loading={saving}
+          disabled={!text.trim() || invalid || text.trim() === fact.value}
+          onClick={() => onSave(text.trim())}
+        >
+          Save
+        </Button>
+
+        <div className="mt-3 border-t border-border/60 pt-2.5">
           {!confirmingRemove ? (
             <button
               type="button"
               disabled={saving}
               onClick={() => setConfirmingRemove(true)}
-              className="ml-auto text-[11px] font-semibold text-muted-foreground transition-colors hover:text-loss disabled:opacity-40"
+              className="w-full rounded-full py-1.5 text-center text-[11px] font-semibold text-muted-foreground transition-colors hover:bg-loss/10 hover:text-loss disabled:opacity-40"
             >
-              Remove
+              Remove this detail
             </button>
           ) : (
-            <span className="ml-auto flex items-center gap-2 text-[11px]">
-              <span className="text-muted-foreground">Sure?</span>
-              <button type="button" disabled={saving} onClick={onRemove} className="font-bold text-loss hover:opacity-80 disabled:opacity-40">
-                Yes, remove
-              </button>
-              <button type="button" disabled={saving} onClick={() => setConfirmingRemove(false)} className="font-semibold text-muted-foreground hover:text-foreground">
-                Keep
-              </button>
-            </span>
+            <div className="flex items-center justify-between gap-2 rounded-xl bg-loss/5 px-3 py-2">
+              <span className="text-[11px] leading-snug text-muted-foreground">It stops shaping your list</span>
+              <span className="flex shrink-0 gap-1.5">
+                <button
+                  type="button"
+                  disabled={saving}
+                  onClick={onRemove}
+                  className="rounded-full bg-loss px-3 py-1 text-[11px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+                >
+                  Remove
+                </button>
+                <button
+                  type="button"
+                  disabled={saving}
+                  onClick={() => setConfirmingRemove(false)}
+                  className="rounded-full px-3 py-1 text-[11px] font-semibold text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  Keep
+                </button>
+              </span>
+            </div>
           )}
         </div>
       </motion.div>
@@ -134,6 +146,9 @@ function Chip({
   onClose: () => void;
   index: number;
 }) {
+  // A spinner means WORK (linear spin, constant speed); calm mode gets a still
+  // "…" instead of frozen motion.
+  const calm = useCalm();
   return (
     <motion.span
       layout
@@ -160,7 +175,15 @@ function Chip({
           <span className={scoring ? "text-muted-foreground" : "text-muted-foreground/70"}>{fact.label}</span>{" "}
           <span className={`font-bold ${scoring ? "text-foreground" : "text-muted-foreground"}`}>{fact.value}</span>
         </span>
-        {saving && <span className="size-1.5 shrink-0 animate-pulse rounded-full bg-primary" aria-hidden />}
+        {saving && (
+          <span className="appear-delayed flex shrink-0 items-center" aria-label="Saving">
+            {calm ? (
+              <span className="text-[10px] font-bold leading-none text-primary">…</span>
+            ) : (
+              <Loader2 className="size-3 animate-spin text-primary" strokeWidth={2.5} />
+            )}
+          </span>
+        )}
       </button>
       <AnimatePresence>
         {editing && <ChipEditor fact={fact} saving={saving} onSave={onSave} onRemove={onRemove} onClose={onClose} />}
