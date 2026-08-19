@@ -63,68 +63,24 @@ export function recomputeFit(rows: { value: number | null; weight: number }[]): 
   return Math.round((Math.round((acc / wsum) * 100) / 100) * 100);
 }
 
-// v3-A: "How this school scores N for you" — every factor, its evidence, and
-// math a 15-year-old can recompute. Unknowns are NOT counted, never a penalty.
-function FitBreakdown({ item, onClose }: { item: ShortlistItem; onClose: () => void }) {
-  const counted = item.breakdown.filter((f) => f.value != null);
-  const recomputed = recomputeFit(item.breakdown);
-  return (
-    <>
-      <button type="button" aria-label="Close" onClick={onClose} className="fixed inset-0 z-40 cursor-default" tabIndex={-1} />
-      <motion.div
-        initial={{ opacity: 0, y: 6 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: 6 }}
-        transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-        className="absolute right-0 top-12 z-50 w-72 rounded-2xl border border-border bg-card p-4 shadow-lg"
-      >
-        <p className="text-sm font-bold text-foreground">How {item.institution} scores {item.fitScore} for you</p>
-        <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
-          Fit measures this school against <span className="font-semibold text-foreground">what you said matters</span>.
-          Every factor we can score counts equally; what we don&apos;t know yet is left out — never counted against a school.
-        </p>
-        <dl className="mt-2.5 space-y-2 border-t border-border/70 pt-2.5">
-          {item.breakdown.map((f) => (
-            <div key={f.label} className="flex items-start justify-between gap-2">
-              <div className="min-w-0">
-                <dt className="text-[11px] font-bold uppercase text-foreground">{f.label}</dt>
-                <dd className="text-[11px] leading-snug text-muted-foreground">{f.detail}</dd>
-              </div>
-              <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold tabular-nums ${f.value != null ? "bg-gold/15 text-gold" : "bg-muted text-muted-foreground"}`}>
-                {f.value != null ? `${f.value}/100` : "not counted"}
-              </span>
-            </div>
-          ))}
-        </dl>
-        <p className="mt-2.5 border-t border-border/70 pt-2 text-[11px] font-semibold tabular-nums text-foreground">
-          Average of {counted.length} factor{counted.length === 1 ? "" : "s"} = {recomputed ?? item.fitScore} fit
-        </p>
-        <div className="mt-2 flex gap-3 text-[11px] font-semibold text-primary">
-          <Link href="/ollie?panel=about" className="hover:opacity-80">Change what matters to me</Link>
-        </div>
-        <p className="mt-2 border-t border-border/70 pt-2 text-[10px] leading-relaxed text-muted-foreground">
-          <span className="font-bold">What fit is not:</span> your chance of getting in, and not a ranking. It changes
-          when you change — update your profile and every score recalculates.
-        </p>
-      </motion.div>
-    </>
-  );
-}
-
 function Row({
   item,
   index,
+  laneTitle,
   onCommit,
   committing,
 }: {
   item: ShortlistItem;
   index: number;
+  laneTitle?: string;
   onCommit?: (item: ShortlistItem, action: "add" | "remove" | "commit" | "uncommit") => void;
   committing?: boolean;
 }) {
   const c = item.committed ? { label: "Your school", color: "var(--primary)" } : (CATEGORY[item.category ?? ""] ?? CATEGORY.HIGH_UNCERTAINTY);
+  // The lane header already names the lane — the card pill repeats it only when
+  // it says MORE than the header (e.g. "Sure footing, easy on money").
+  const pillRedundant = !!laneTitle && laneTitle.toLowerCase().startsWith(c.label.toLowerCase());
   const [open, setOpen] = useState(false);
-  const [mathOpen, setMathOpen] = useState(false);
   const pinned = item.category === "PINNED" || item.committed;
   return (
     <motion.li
@@ -148,32 +104,36 @@ function Row({
                 item.institution
               )}
             </h3>
-            <div className="mt-1 flex flex-wrap items-center gap-1.5">
-              <span
-                className="rounded-full px-2 py-0.5 text-[10px] font-black"
-                style={{ color: c.color, background: `color-mix(in oklab, ${c.color} 12%, transparent)` }}
-              >
-                {c.label}
-              </span>
-              {item.program && <span className="truncate text-[11px] text-muted-foreground">{item.program}</span>}
-            </div>
+            {(!pillRedundant || item.program) && (
+              <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                {!pillRedundant && (
+                  <span
+                    className="rounded-full px-2 py-0.5 text-[10px] font-black"
+                    style={{ color: c.color, background: `color-mix(in oklab, ${c.color} 12%, transparent)` }}
+                  >
+                    {c.label}
+                  </span>
+                )}
+                {item.program && <span className="truncate text-[11px] text-muted-foreground">{item.program}</span>}
+              </div>
+            )}
           </div>
-          {item.fitScore != null && (
-            <span className="relative inline-flex shrink-0 flex-col items-center">
-              <FitRing score={item.fitScore} />
-              {item.breakdown.length > 0 && (
-                <button
-                  type="button"
-                  aria-label={`How the ${item.fitScore} fit was computed`}
-                  onClick={() => setMathOpen((v) => !v)}
-                  className="mt-0.5 flex size-4 items-center justify-center rounded-full border border-border text-[9px] font-bold text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary"
-                >
-                  i
-                </button>
-              )}
-              <AnimatePresence>{mathOpen && <FitBreakdown item={item} onClose={() => setMathOpen(false)} />}</AnimatePresence>
-            </span>
-          )}
+          {item.fitScore != null &&
+            (item.breakdown.length > 0 ? (
+              // The ring IS the button — tap the number to see how it was made.
+              <button
+                type="button"
+                aria-label={`How the ${item.fitScore} fit was computed`}
+                aria-expanded={open}
+                title="See how this number was made"
+                onClick={() => setOpen((v) => !v)}
+                className="press shrink-0 rounded-full transition-shadow hover:shadow-[0_0_0_3px_color-mix(in_oklab,var(--gold)_30%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+              >
+                <FitRing score={item.fitScore} />
+              </button>
+            ) : (
+              <span className="shrink-0"><FitRing score={item.fitScore} /></span>
+            ))}
         </div>
 
         {/* YOUR boxes, checked — the card's spine (v3) */}
@@ -227,17 +187,32 @@ function Row({
               )}
               <dl className="mt-2.5 space-y-2.5 border-l border-border pl-3">
                 {item.breakdown.map((f, i) => (
-                  <div key={i}>
-                    <dt className="flex items-center gap-2 text-[11px] font-bold uppercase text-foreground">
-                      {f.label}
-                      {CONFIDENCE_NOTE[f.confidence] && (
-                        <span className="font-medium normal-case text-muted-foreground">· {CONFIDENCE_NOTE[f.confidence]}</span>
-                      )}
-                    </dt>
-                    <dd className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{f.detail}</dd>
+                  <div key={i} className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <dt className="flex items-center gap-2 text-[11px] font-bold uppercase text-foreground">
+                        {f.label}
+                        {CONFIDENCE_NOTE[f.confidence] && (
+                          <span className="font-medium normal-case text-muted-foreground">· {CONFIDENCE_NOTE[f.confidence]}</span>
+                        )}
+                      </dt>
+                      <dd className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{f.detail}</dd>
+                    </div>
+                    <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10.5px] font-bold tabular-nums ${f.value != null ? "bg-gold/15 text-gold" : "bg-muted text-muted-foreground"}`}>
+                      {f.value != null ? `${f.value}/100` : "not counted"}
+                    </span>
                   </div>
                 ))}
               </dl>
+              {item.fitScore != null && (
+                <p className="mt-2.5 border-t border-border/60 pt-2 text-[11px] font-semibold tabular-nums text-foreground">
+                  Average of {item.breakdown.filter((f) => f.value != null).length} factors = {recomputeFit(item.breakdown) ?? item.fitScore} fit
+                  <Link href="/ollie?panel=about" className="ml-3 font-semibold text-primary hover:opacity-80">Change what matters to me</Link>
+                </p>
+              )}
+              <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">
+                <span className="font-bold">What fit is not:</span> your chance of getting in, and not a ranking. It
+                changes when you change — update your profile and every score recalculates.
+              </p>
               {/* The big decision lives here, deliberately — not on the card face */}
               {onCommit && item.institutionId && !item.committed && (
                 <button
@@ -261,7 +236,7 @@ function Row({
             type="button"
             disabled={committing}
             onClick={() => onCommit(item, "add")}
-            className="rounded-full px-2.5 py-1 text-[11px] font-semibold text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary disabled:opacity-40"
+            className="press rounded-full border border-border bg-card px-3 py-1.5 text-[11px] font-semibold text-foreground shadow-xs transition-colors hover:border-primary/40 hover:text-primary disabled:opacity-40"
           >
             Keep on my list
           </button>
@@ -272,7 +247,7 @@ function Row({
             disabled={committing}
             onClick={() => onCommit(item, "remove")}
             title="Takes it off and keeps it off — you can always add it back by name"
-            className="rounded-full px-2.5 py-1 text-[11px] font-semibold text-muted-foreground transition-colors hover:bg-loss/10 hover:text-loss disabled:opacity-40"
+            className="press rounded-full border border-border bg-card px-3 py-1.5 text-[11px] font-semibold text-muted-foreground shadow-xs transition-colors hover:border-loss/40 hover:text-loss disabled:opacity-40"
           >
             Not for me
           </button>
@@ -282,7 +257,11 @@ function Row({
             type="button"
             onClick={() => setOpen((o) => !o)}
             aria-expanded={open}
-            className="ml-auto flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold text-primary transition-colors hover:bg-primary/10"
+            className={`press ml-auto flex items-center gap-1 rounded-full border px-3 py-1.5 text-[11px] font-bold transition-colors ${
+              open
+                ? "border-primary bg-primary text-primary-foreground"
+                : "border-primary/35 bg-primary/5 text-primary hover:bg-primary/10"
+            }`}
           >
             {open ? "Hide the evidence" : "Why this one"}
             <span className={`inline-block transition-transform duration-200 ${open ? "rotate-90" : ""}`}>›</span>
@@ -366,39 +345,33 @@ export function OllieShortlist({ refreshKey, refreshing = false }: { refreshKey:
 
 
 
-        {/* The commitment — the learner's decision, owned and reversible */}
+        {/* The commitment — one quiet strip, owned and reversible */}
         {view?.ready && view.committed && (
-          <div className="glossy mx-5 mt-4 rounded-2xl border border-primary/30 bg-primary/10 px-4 py-3">
-            <p className="text-sm font-semibold text-foreground">
-              You committed to {view.committed.institution}
-            </p>
-            <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
-              Your plan, funding and applications now point there. The rest of this list stays as backups.
+          <div className="mx-4 mt-3 flex items-center justify-between gap-3 rounded-full border border-primary/30 bg-primary/10 py-1.5 pl-4 pr-2">
+            <p className="min-w-0 truncate text-xs font-semibold text-foreground">
+              Your school: <span className="text-primary">{view.committed.institution}</span>
             </p>
             <button
               type="button"
               disabled={committing}
               onClick={() =>
-                onCommit(
-                  { institutionId: view.committed!.institutionId } as ShortlistItem,
-                  "uncommit",
-                )
+                onCommit({ institutionId: view.committed!.institutionId } as ShortlistItem, "uncommit")
               }
-              className="mt-2 text-[11px] font-semibold text-primary transition-opacity hover:opacity-70 disabled:opacity-40"
+              className="shrink-0 rounded-full px-2.5 py-1 text-[10px] font-semibold text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary disabled:opacity-40"
             >
-              Changed your mind? Take it back
+              Take it back
             </button>
           </div>
         )}
 
         {/* Ollie's one-line read on the list (AI-written; static fallback) */}
         {view?.ready && count > 0 && !busy && (
-          <div
-            className="mx-5 mt-4 rounded-xl px-3.5 py-2.5 text-sm font-medium"
-            style={{ background: WARM_SOFT, color: WARM }}
+          <p
+            className="mx-4 mt-3 border-l-2 pl-3 text-xs leading-relaxed text-muted-foreground"
+            style={{ borderColor: WARM }}
           >
             {view.note ?? "Your list is taking shape — tell me more and I'll sharpen it."}
-          </div>
+          </p>
         )}
 
         {/* Ready but empty */}
@@ -410,38 +383,33 @@ export function OllieShortlist({ refreshKey, refreshing = false }: { refreshKey:
           </div>
         )}
 
-        {/* The list */}
-        {view?.ready && view.options.length > 0 && (
-          <p className="border-b border-border/70 bg-accent/40 px-5 py-2 text-[11px] leading-relaxed text-accent-foreground">
-            <span className="font-semibold">Matched to your profile.</span> Fit is about you, not rankings — the ring is
-            how well each school matches what YOU said matters.
-          </p>
-        )}
         <AnimatePresence>
           {view?.ready && view.options.length > 0 && (() => {
             const lane = (cats: string[]) => view.options.filter((o) => !o.committed && cats.includes(o.category ?? ""));
             // v3 lanes: Sure footing (foundation, not fallback) / Strong fit
             // (the heart of the list) / Aspiration (the stretch is YOURS).
             const lanes = [
-              { key: "committed", title: "Your school — committed", blurb: null, items: view.options.filter((o) => o.committed) },
-              { key: "picks", title: view.committed ? "Backups you picked" : "Your picks", blurb: null, items: lane(["PINNED"]) },
-              { key: "sure", title: "Sure footing", blurb: "Schools that check your boxes and where the numbers say you belong. Not a fallback, a foundation.", items: lane(["FINANCIAL_SAFETY", "LIKELY"]) },
-              { key: "strong", title: "Strong fit", blurb: "The heart of the list. Your criteria met, your profile in range.", items: lane(["TARGET", "STRATEGIC_WILDCARD", "SPECIAL_PATHWAY"]) },
-              { key: "aspiration", title: "Aspiration", blurb: "Worth the stretch — and the stretch is yours.", items: lane(["REACH"]) },
-              { key: "unknown", title: "Need more info to place", blurb: null, items: lane(["HIGH_UNCERTAINTY"]) },
+              { key: "committed", title: "Your school", blurb: "Committed — everything plans around it.", color: "var(--primary)", items: view.options.filter((o) => o.committed) },
+              { key: "picks", title: view.committed ? "Backups you picked" : "Your picks", blurb: null, color: "var(--gold)", items: lane(["PINNED"]) },
+              { key: "sure", title: "Sure footing", blurb: "Not a fallback, a foundation.", color: "var(--win)", items: lane(["FINANCIAL_SAFETY", "LIKELY"]) },
+              { key: "strong", title: "Strong fit", blurb: "The heart of the list — your criteria met, your profile in range.", color: "var(--primary)", items: lane(["TARGET", "STRATEGIC_WILDCARD", "SPECIAL_PATHWAY"]) },
+              { key: "aspiration", title: "Aspiration", blurb: "Worth the stretch — and the stretch is yours.", color: "var(--gold)", items: lane(["REACH"]) },
+              { key: "unknown", title: "Need more info to place", blurb: null, color: "var(--muted-foreground)", items: lane(["HIGH_UNCERTAINTY"]) },
             ].filter((l) => l.items.length > 0);
             let idx = 0;
             return (
               <div className={`transition-opacity duration-300 ${busy ? "opacity-40" : "opacity-100"}`}>
                 {lanes.map((l) => (
-                  <div key={l.key}>
-                    <div className="border-b border-border/70 bg-muted/40 px-5 py-1.5">
-                      <p className="text-[10px] font-black uppercase text-muted-foreground">{l.title}</p>
-                      {l.blurb && <p className="text-[10px] leading-snug text-muted-foreground/80">{l.blurb}</p>}
+                  <div key={l.key} className="mt-4 first:mt-2">
+                    <div className="flex items-baseline gap-2 px-4">
+                      <span className="h-3 w-1 shrink-0 self-center rounded-full" style={{ background: l.color }} aria-hidden />
+                      <p className="text-[11px] font-black uppercase text-foreground">{l.title}</p>
+                      <span className="text-[10px] font-bold tabular-nums text-muted-foreground">{l.items.length}</span>
                     </div>
-                    <ul className="space-y-2.5 px-3 py-3">
+                    {l.blurb && <p className="mt-0.5 px-4 pl-7 text-[10.5px] leading-snug text-muted-foreground">{l.blurb}</p>}
+                    <ul className="space-y-2.5 px-3 pb-1 pt-2">
                       {l.items.map((item) => (
-                        <Row key={item.optionId} item={item} index={idx++} onCommit={onCommit} committing={committing} />
+                        <Row key={item.optionId} item={item} index={idx++} laneTitle={l.title} onCommit={onCommit} committing={committing} />
                       ))}
                     </ul>
                   </div>
