@@ -9,6 +9,7 @@ import { getJourney } from "../service";
 import type { JourneyItem, JourneyView } from "../types";
 import { WARM, WARM_SOFT } from "./ollie-theme";
 import { PanelListSkeleton } from "./panel-bits";
+import { TaskList } from "./task-list";
 
 dayjs.extend(relativeTime);
 
@@ -64,6 +65,21 @@ function Row({ item, index }: { item: JourneyItem; index: number }) {
 
 // The Plan tab: one dated timeline — do-now tasks, then every real deadline for
 // the schools in focus and the money worth chasing.
+// The board half of the ONE task system: everything you added — here and on
+// application cards — checkable in one place, with progress you can feel.
+function TaskBoard({ refreshKey }: { refreshKey: number }) {
+  return (
+    <div className="mx-4 mt-3 rounded-2xl border border-border bg-card p-4">
+      <TaskList
+        title="Your tasks"
+        showProgress
+        placeholder="Add a task — anything on your mind"
+        refreshKey={refreshKey}
+      />
+    </div>
+  );
+}
+
 export function OllieJourney({ refreshKey, refreshing = false }: { refreshKey: number; refreshing?: boolean }) {
   const [view, setView] = useState<JourneyView | null>(null);
   const [loading, startLoad] = useTransition();
@@ -100,6 +116,7 @@ export function OllieJourney({ refreshKey, refreshing = false }: { refreshKey: n
       </header>
 
       <div className="flex-1 overflow-y-auto">
+        <TaskBoard refreshKey={refreshKey} />
         {busy && view && (
           <div className="mx-5 mt-4 rounded-xl px-3.5 py-2.5 text-sm font-medium" style={{ background: WARM_SOFT, color: WARM }}>
             Rebuilding your plan…

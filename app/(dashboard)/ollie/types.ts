@@ -211,6 +211,21 @@ export interface ConversationMessage {
   at: string;
 }
 
+// One task, two views: My Plan (the board) and the application card (the
+// school's slice).
+export type TaskStatus = "todo" | "in_progress" | "done";
+
+export interface LearnerTask {
+  id: string;
+  title: string;
+  institutionId: string | null;
+  applicationId: string | null;
+  dueAt: string | null;
+  done: boolean; // kept in sync with status by the backend
+  status: TaskStatus;
+  source: "learner" | "generated";
+}
+
 // ---- Q-Admit: the learner's application trackers (QA-001…QA-003) ----
 
 export type ApplicationStatus =
@@ -274,4 +289,5 @@ export interface TrackedApplication {
   application: ApplicationDetail;
   readiness: ApplicationReadiness | null;
   school: string; // resolved institution name
+  schoolUrl: string | null; // the school's own site — door to their portal
 }

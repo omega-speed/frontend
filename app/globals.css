@@ -332,9 +332,14 @@
   animation: none !important;
 }
 
-:focus-visible {
-  outline: 2px solid var(--ring);
-  outline-offset: 2px;
+/* Base-layer a11y default: every focusable gets a visible ring UNLESS a
+   component supplies its own focus treatment (outline-none + border/ring
+   utilities win because utilities layer after base). */
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
 }
 
 /* Loading indicators appear only when a wait is REAL: invisible for the first
@@ -343,10 +348,17 @@
 .appear-delayed { opacity: 0; animation: appear-after 0.18s ease-out 0.15s forwards; }
 [data-calm] .appear-delayed { animation-delay: 0s; animation-duration: 0.01ms; }
 
+/* Text selection carries the brand — never stock blue. */
+::selection {
+  background: color-mix(in oklab, var(--brand) 20%, transparent);
+}
+
 /* Press feedback for pill chips/tabs: respond on pointer-DOWN with a subtle
-   scale; hover lift only on devices that truly hover (touch taps fake hover). */
+   scale; hover lift only on devices that truly hover (touch taps fake hover).
+   Controls are not prose — a drag across them must never paint selection. */
 .press {
   transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
+  user-select: none;
 }
 .press:active {
   transform: scale(0.96);

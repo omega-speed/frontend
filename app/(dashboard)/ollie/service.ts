@@ -2,7 +2,7 @@
 
 import api from "@/lib/api";
 import { getCurrentUser } from "@/lib/auth";
-import type { AboutView, ConversationMessage, Declaration, FundingView, JourneyView, OllieAnswer, ShortlistView } from "./types";
+import type { AboutView, ConversationMessage, Declaration, FundingView, JourneyView, LearnerTask, OllieAnswer, ShortlistView } from "./types";
 
 export type AskResult =
   | { ok: true; answer: OllieAnswer }
@@ -203,6 +203,102 @@ export async function updateRequirement(
     return { ok: Boolean(res?.success), message: res?.message };
   } catch {
     return { ok: false, message: "Couldn't update that." };
+  }
+}
+
+// The task system: one list feeding My Plan and the application cards.
+export type TasksResult = { ok: true; tasks: LearnerTask[] } | { ok: false; message: string };
+
+export async function getTasks(filter?: { applicationId?: string }): Promise<TasksResult> {
+  const user = await getCurrentUser();
+  if (!user) return { ok: false, message: "Please sign in again." };
+  try {
+    const qs = filter?.applicationId ? `?applicationId=${filter.applicationId}` : "";
+    const res = await api.get(`tasks${qs}`);
+    if (res?.success) return { ok: true, tasks: (res.data ?? []) as LearnerTask[] };
+    return { ok: false, message: res?.message ?? "Couldn't load tasks." };
+  } catch {
+    return { ok: false, message: "Couldn't load tasks." };
+  }
+}
+
+export async function addTask(input: { title: string; institutionId?: string; applicationId?: string }): Promise<{ ok: boolean; task?: LearnerTask; message?: string }> {
+  const user = await getCurrentUser();
+  if (!user) return { ok: false, message: "Please sign in again." };
+  try {
+    const res = await api.post("tasks", input);
+    if (res?.success && res.data) return { ok: true, task: res.data as LearnerTask };
+    return { ok: false, message: res?.message ?? "Couldn't add that." };
+  } catch {
+    return { ok: false, message: "Couldn't add that." };
+  }
+}
+
+export async function updateTask(
+  id: string,
+  patch: { title?: string; dueAt?: string | null },
+): Promise<{ ok: boolean; message?: string }> {
+  const user = await getCurrentUser();
+  if (!user) return { ok: false, message: "Please sign in again." };
+  try {
+    const res = await api.patch(`tasks/${id}`, patch);
+    return { ok: Boolean(res?.success), message: res?.message };
+  } catch {
+    return { ok: false, message: "Couldn't update that." };
+  }
+}
+
+export async function toggleTask(id: string): Promise<{ ok: boolean; message?: string }> {
+  const user = await getCurrentUser();
+  if (!user) return { ok: false };
+  try {
+    const res = await api.post(`tasks/${id}/toggle`, {});
+    return { ok: Boolean(res?.success), message: res?.message };
+  } catch {
+    return { ok: false, message: "Couldn't update that." };
+  }
+}
+
+export async function deleteTask(id: string): Promise<{ ok: boolean }> {
+  const user = await getCurrentUser();
+  if (!user) return { ok: false };
+  try {
+    const res = await api.delete(`tasks/${id}`);
+    return { ok: Boolean(res?.success) };
+  } catch {
+    return { ok: false };
+  }
+}
+
+// POST /q-admit/applications/:id/status — the learner records a life event on
+// their tracker: submitted, withdrawn. Appends a new attributed version.
+export async function updateApplicationStatus(
+  applicationId: string,
+  status: "SUBMITTED" | "WITHDRAWN" | "IN_PROGRESS",
+  statusReason?: string,
+): Promise<{ ok: boolean; message?: string }> {
+  const user = await getCurrentUser();
+  if (!user) return { ok: false, message: "Please sign in again." };
+  try {
+    const res = await api.post(`q-admit/applications/${applicationId}/status`, { status, statusReason });
+    return { ok: Boolean(res?.success), message: res?.message };
+  } catch {
+    return { ok: false, message: "Couldn't update that." };
+  }
+}
+
+// POST /q-admit/applications/:id/decisions — record what the school said.
+export async function recordDecision(
+  applicationId: string,
+  decisionType: "ADMITTED" | "DENIED" | "WAITLISTED" | "DEFERRED",
+): Promise<{ ok: boolean; message?: string }> {
+  const user = await getCurrentUser();
+  if (!user) return { ok: false, message: "Please sign in again." };
+  try {
+    const res = await api.post(`q-admit/applications/${applicationId}/decisions`, { decisionType });
+    return { ok: Boolean(res?.success), message: res?.message };
+  } catch {
+    return { ok: false, message: "Couldn't record that." };
   }
 }
 

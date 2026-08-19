@@ -3,7 +3,7 @@
 import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { Loader2 } from "lucide-react";
+import { ChevronRight, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { commitSchool, getShortlist } from "../service";
 import type { ShortlistItem, ShortlistView } from "../types";
@@ -268,7 +268,7 @@ function Row({
             className="ml-auto flex items-center gap-0.5 text-[11.5px] font-bold text-primary transition-opacity hover:opacity-75"
           >
             {open ? "Hide the evidence" : "Why this one"}
-            <span className={`inline-block transition-transform duration-200 ${open ? "rotate-90" : ""}`}>›</span>
+            <ChevronRight className={`size-3 transition-transform duration-200 ${open ? "rotate-90" : ""}`} strokeWidth={2.5} aria-hidden />
           </button>
         )}
       </div>

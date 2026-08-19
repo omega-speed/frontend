@@ -2,6 +2,8 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { ChevronRight } from "lucide-react";
+import dayjs from "dayjs";
 import { getFunding } from "../service";
 import type { FundingAward, FundingView } from "../types";
 import { WARM, WARM_SOFT } from "./ollie-theme";
@@ -28,9 +30,11 @@ function Row({ award, index }: { award: FundingAward; index: number }) {
   const o = OUTCOME[award.outcome] ?? OUTCOME.UNCERTAIN;
   return (
     <motion.li
+      layout
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.28, delay: index * 0.05 }}
+      exit={{ opacity: 0, transition: { duration: 0.15 } }}
+      transition={{ duration: 0.28, delay: index * 0.05, layout: { type: "spring", bounce: 0, duration: 0.45 } }}
       className="border-b border-border/70 px-5 py-4 last:border-b-0"
     >
       <div className="flex items-baseline justify-between gap-3">
@@ -41,10 +45,20 @@ function Row({ award, index }: { award: FundingAward; index: number }) {
         </span>
       </div>
       <p className="mt-0.5 text-xs text-muted-foreground">
-        {award.sponsor} · {amountLabel(award)}
-        {award.renewable ? " · renewable" : ""}
-        {award.deadline ? ` · due ${award.deadline}` : ""}
+        <span className="font-semibold text-foreground">{amountLabel(award)}</span>
+        {award.renewable ? ", renewable each year" : ""} from {award.sponsor}
       </p>
+      {award.deadline && (
+        <p
+          className={`mt-0.5 text-xs ${
+            dayjs(award.deadline).diff(dayjs(), "day") <= 14 && dayjs(award.deadline).isAfter(dayjs())
+              ? "font-semibold text-gold"
+              : "text-muted-foreground"
+          }`}
+        >
+          Closes {dayjs(award.deadline).format("MMM D")}, {dayjs(award.deadline).fromNow()}
+        </p>
+      )}
       {award.schoolTied && (
         <p className="mt-1 text-xs font-medium" style={{ color: WARM }}>
           Only if you attend {award.schoolTied}
@@ -56,10 +70,10 @@ function Row({ award, index }: { award: FundingAward; index: number }) {
           <button
             type="button"
             onClick={() => setOpen((v) => !v)}
-            className="flex items-center gap-1 text-[11px] font-semibold uppercase text-muted-foreground transition-colors hover:text-primary"
+            className="press flex items-center gap-1 text-[11px] font-semibold uppercase text-muted-foreground transition-[transform,color] hover:text-primary"
             aria-expanded={open}
           >
-            <span className={`inline-block transition-transform duration-200 ${open ? "rotate-90" : ""}`}>›</span>
+            <ChevronRight className={`size-3 transition-transform duration-200 ${open ? "rotate-90" : ""}`} strokeWidth={2.5} aria-hidden />
             {open ? "Hide the why" : "Why you qualify"}
           </button>
           <AnimatePresence initial={false}>
@@ -67,8 +81,8 @@ function Row({ award, index }: { award: FundingAward; index: number }) {
               <motion.div
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.22 }}
+                exit={{ height: 0, opacity: 0, transition: { duration: 0.15, ease: [0.23, 1, 0.32, 1] } }}
+                transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
                 className="overflow-hidden"
               >
                 <div className="mt-2 space-y-1 border-l border-border pl-3">
@@ -76,9 +90,14 @@ function Row({ award, index }: { award: FundingAward; index: number }) {
                     <p key={i} className="text-xs leading-relaxed text-muted-foreground">{w}</p>
                   ))}
                   {award.openQuestions.length > 0 && (
-                    <p className="pt-1 text-xs leading-relaxed text-muted-foreground/80">
-                      Still open: {award.openQuestions.join("; ")}
-                    </p>
+                    <div className="pt-1.5">
+                      <p className="text-[10px] font-bold uppercase text-muted-foreground/70">Still to answer</p>
+                      {award.openQuestions.map((q, i) => (
+                        <p key={i} className="text-xs leading-relaxed text-muted-foreground/80">
+                          {q.charAt(0).toUpperCase() + q.slice(1)}
+                        </p>
+                      ))}
+                    </div>
                   )}
                 </div>
               </motion.div>
@@ -130,10 +149,23 @@ export function OllieFunding({ refreshKey, refreshing = false }: { refreshKey: n
         {view?.ready && count > 0 && (view.totalUpTo ?? 0) > 0 && (
           <div className="mx-5 mt-4 rounded-2xl border border-gold/30 bg-gold/10 px-4 py-3">
             <p className="text-[10px] font-black uppercase text-gold">Matched to you so far</p>
-            <p className="text-2xl font-black tabular-nums text-foreground">up to {money(view.totalUpTo!)}</p>
+            <p className="relative overflow-hidden text-2xl font-black tabular-nums text-foreground">
+              <AnimatePresence mode="popLayout" initial={false}>
+                <motion.span
+                  key={view.totalUpTo}
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -16 }}
+                  transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+                  className="block"
+                >
+                  up to {money(view.totalUpTo!)}
+                </motion.span>
+              </AnimatePresence>
+            </p>
             <p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">
-              Across {count} award{count === 1 ? "" : "s"} you may qualify for. Sticker price is not the real price —
-              and none of this is promised until it&apos;s in writing.
+              Across {count} award{count === 1 ? "" : "s"} you may qualify for. Nothing is promised until it&apos;s
+              in writing.
             </p>
           </div>
         )}
@@ -149,9 +181,11 @@ export function OllieFunding({ refreshKey, refreshing = false }: { refreshKey: n
         <AnimatePresence>
           {count > 0 && (
             <ul className={`transition-opacity duration-300 ${busy ? "opacity-40" : "opacity-100"}`}>
-              {view!.awards.map((a, i) => (
-                <Row key={a.id} award={a} index={i} />
-              ))}
+              <AnimatePresence initial={false}>
+                {view!.awards.map((a, i) => (
+                  <Row key={a.id} award={a} index={i} />
+                ))}
+              </AnimatePresence>
             </ul>
           )}
         </AnimatePresence>

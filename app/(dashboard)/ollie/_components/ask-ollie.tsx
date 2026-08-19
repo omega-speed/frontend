@@ -236,7 +236,7 @@ export function AskOllie({
                       <button
                         type="button"
                         onClick={() => onOpenPanel?.("shortlist")}
-                        className="ml-10 flex items-center gap-3 rounded-2xl border border-primary/40 bg-card px-4 py-2.5 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary hover:shadow-md"
+                        className="press press-lift ml-10 flex items-center gap-3 rounded-2xl border border-primary/40 bg-card px-4 py-2.5 text-left shadow-sm transition-[transform,border-color,box-shadow] hover:border-primary hover:shadow-md"
                       >
                         <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[10px] font-black uppercase text-primary">
                           Fit
@@ -327,7 +327,7 @@ export function AskOllie({
           }}
           className="mx-auto w-full max-w-3xl"
         >
-          <div className="glossy flex items-end gap-2 rounded-full border border-border bg-card px-4 py-2.5 shadow-[0_2px_16px_-6px_color-mix(in_oklab,var(--brand)_20%,transparent)] transition-all duration-300 focus-within:border-primary/60 focus-within:shadow-[0_8px_28px_-8px_color-mix(in_oklab,var(--brand)_35%,transparent)]">
+          <div className="glossy flex items-end gap-2 rounded-full border border-border bg-card px-4 py-2.5 shadow-[0_2px_16px_-6px_color-mix(in_oklab,var(--brand)_20%,transparent)] transition-[border-color,box-shadow] duration-300 focus-within:border-primary/60 focus-within:shadow-[0_8px_28px_-8px_color-mix(in_oklab,var(--brand)_35%,transparent)]">
             <textarea
               ref={inputRef}
               value={input}
@@ -350,7 +350,7 @@ export function AskOllie({
               disabled={busy || !input.trim()}
               aria-label="Send"
               style={{ background: "linear-gradient(135deg, var(--primary), oklch(0.66 0.24 320))" }}
-              className="mb-0.5 flex size-9 shrink-0 items-center justify-center rounded-full text-primary-foreground shadow-md transition-all hover:scale-105 hover:shadow-lg disabled:scale-100 disabled:opacity-30"
+              className="press mb-0.5 flex size-9 shrink-0 items-center justify-center rounded-full text-primary-foreground shadow-md transition-[transform,box-shadow,opacity] hover:shadow-lg disabled:opacity-30"
             >
               <svg
                 viewBox="0 0 24 24"

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { ChevronRight } from "lucide-react";
 import type { OllieAnswer } from "../types";
 
 // Turn a domain key like "Q_MATCH" into "Q-Match".
@@ -27,14 +28,10 @@ export function OllieReasoning({ answer }: { answer: OllieAnswer }) {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-1.5 text-[11px] font-black uppercase text-muted-foreground transition-colors hover:text-primary"
+        className="press flex items-center gap-1.5 text-[11px] font-black uppercase text-muted-foreground transition-[transform,color] hover:text-primary"
         aria-expanded={open}
       >
-        <span
-          className={`inline-block transition-transform duration-200 ${open ? "rotate-90" : ""}`}
-        >
-          ›
-        </span>
+<ChevronRight className={`size-3 transition-transform duration-200 ${open ? "rotate-90" : ""}`} strokeWidth={2.5} aria-hidden />
         {open ? "Hide thought process" : "Show thought process"}
       </button>
 
@@ -43,8 +40,8 @@ export function OllieReasoning({ answer }: { answer: OllieAnswer }) {
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.22 }}
+            exit={{ height: 0, opacity: 0, transition: { duration: 0.15, ease: [0.23, 1, 0.32, 1] } }}
+            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
             className="overflow-hidden"
           >
             <div className="mt-2 space-y-3 border-l-2 border-border pl-3.5 text-sm">

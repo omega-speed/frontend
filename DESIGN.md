@@ -6,7 +6,7 @@
 - **Brand color**: a confident **glossy purple**. It lives in **one** token — `--brand` in `globals.css` (with `--brand-foreground`, the ink on top of it). Change `--brand` to rebrand the whole app in one line; it feeds `--primary`, `--ring`, `--gold`, `--social`, and the sidebar primary.
 - **Radius**: well-rounded, set once via `--radius` (1.05rem) in `globals.css` (feeds the whole `rounded-*` scale). **Controls (buttons, inputs, chips, tabs) are full pills** (`rounded-full`) — baked into the base components; don't hard-code radii elsewhere.
 - **Composition**: a floating rounded card with depth. Showcase surfaces (auth) pair a solid **brand-color panel** (real copy + domain chips + a faint dot texture) with the form — designed and branded, never Lorem filler or a bare centered form.
-- **Restraint (avoid the "vibe-coded" look)**: no decorative icons or emoji (the password-reveal eye is the one justified, universal exception). Gloss is allowed ONLY through the sanctioned utilities — `.glossy` (top sheen on premium cards), `.glow-primary` (brand-tinted glow), `.cta-btn` (sweep sheen) — never ad-hoc gradients. Motion is smooth and soft: 200–350ms, `cubic-bezier(0.22, 1, 0.36, 1)`, fade + small translate; never bouncy.
+- **Restraint (avoid the "vibe-coded" look)**: no decorative icons or emoji. Functional AFFORDANCE icons are sanctioned (owner decision, 2026-08-14): lucide `ChevronRight` (rotates 90° when expanded) / `ChevronDown` (flips 180°) on expanders, `ArrowUpRight` on external links, the password-reveal eye — at `size-3`, `strokeWidth 2.5`, `aria-hidden`. Never text glyphs (›, ↗, ▼) and never icons as decoration. Gloss is allowed ONLY through the sanctioned utilities — `.glossy` (top sheen on premium cards), `.glow-primary` (brand-tinted glow), `.cta-btn` (sweep sheen) — never ad-hoc gradients. Motion is smooth and soft: 200–350ms, `cubic-bezier(0.22, 1, 0.36, 1)`, fade + small translate; never bouncy.
 
 ## Form & Label Conventions
 
@@ -136,3 +136,24 @@ Scope it to the image wrapper:
   </div>
 </div>
 ```
+
+## Motion & Press Discipline (Emil/apple-design pass, 2026-08-14)
+
+Baked-in rules — new components must follow them:
+
+- **Press feedback on every pill/chip/tab**: add the `.press` utility (scale 0.96
+  on `:active`, 160ms strong ease-out). Hover lifts use `.press-lift` — it is
+  gated behind `@media (hover: hover) and (pointer: fine)` so touch taps never
+  fake-hover. The base `Button` presses to `scale(0.97)` automatically.
+- **Never `transition-all`** — name the properties (`transition-[transform,color]`).
+- **Exits faster than enters**: AnimatePresence collapse/close ≈150–180ms with
+  `cubic-bezier(0.23,1,0.32,1)`; enters may take 220–300ms.
+- **Entrance staggers run once, at mount** (`.panel-pane` children) — never
+  re-run on tab switches or rapid toggles; frequent actions get NO animation.
+- **Popovers scale from their trigger** (`transform-origin` at the trigger
+  corner, enter from `scale(0.96)` + fade). Modals stay centered.
+- **Floating chrome is translucent**: sticky headers/input bars use
+  `bg-background/70 backdrop-blur-md supports-backdrop-filter:bg-background/55`
+  with soft borders (`border-border/50`) — content scrolls underneath.
+- Reduced motion + calm mode already collapse all of this to instant states —
+  keep any new animation inside those rules.

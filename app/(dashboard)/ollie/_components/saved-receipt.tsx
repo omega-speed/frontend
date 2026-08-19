@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
+import { ChevronDown } from "lucide-react";
 import type { Declaration } from "../types";
 
 // The receipt: "Saved N details to your profile" — one quiet line in the chat
@@ -57,11 +58,11 @@ export function SavedReceipt({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="glossy inline-flex items-center gap-2 rounded-full border border-primary/25 bg-card px-3.5 py-1.5 text-xs font-semibold text-primary transition-colors hover:border-primary/50"
+        className="press glossy inline-flex items-center gap-2 rounded-full border border-primary/25 bg-card px-3.5 py-1.5 text-xs font-semibold text-primary transition-[transform,border-color] hover:border-primary/50"
       >
         <span className="flex size-3.5 items-center justify-center rounded-full bg-win/15 text-[9px] text-win">✓</span>
         Saved {remaining.length} detail{remaining.length === 1 ? "" : "s"} to your profile
-        <span className="text-[9px] text-muted-foreground">{open ? "▲" : "▼"}</span>
+        <ChevronDown className={`size-3 text-muted-foreground transition-transform duration-200 ${open ? "rotate-180" : ""}`} strokeWidth={2.5} aria-hidden />
       </button>
 
       <AnimatePresence>
@@ -69,7 +70,7 @@ export function SavedReceipt({
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
+            exit={{ opacity: 0, height: 0, transition: { duration: 0.16, ease: [0.23, 1, 0.32, 1] } }}
             transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
             className="overflow-hidden"
           >

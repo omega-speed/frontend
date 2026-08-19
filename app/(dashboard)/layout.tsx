@@ -7,6 +7,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { getSegments } from "./_lib/segments";
 import { JourneySidebar } from "./_components/journey-sidebar";
 import { NotificationBell } from "./_components/notification-bell";
+import { MotionProvider } from "@/components/motion/motion-provider";
 
 // Every dashboard route is authenticated (reads cookies) and must render per-request.
 export const dynamic = "force-dynamic";
@@ -18,6 +19,7 @@ export default async function layout({ children }: { children: ReactNode }) {
   // surface more for those who need it, zero for everyone else.
   const [user, segments] = await Promise.all([getCurrentUser(), getSegments()]);
   return (
+    <MotionProvider>
     <div className="flex min-h-svh bg-background">
       <JourneySidebar
         userName={user?.name || user?.email?.split("@")[0] || "Student"}
@@ -53,5 +55,6 @@ export default async function layout({ children }: { children: ReactNode }) {
         <main className="flex min-w-0 flex-1 flex-col">{children}</main>
       </div>
     </div>
+    </MotionProvider>
   );
 }

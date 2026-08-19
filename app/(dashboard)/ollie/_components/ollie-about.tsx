@@ -163,7 +163,7 @@ function Chip({
         onClick={onOpen}
         disabled={saving}
         title={scoring ? "Shaping your shortlist — tap to change it" : "Noted, not scored yet — tap to change it"}
-        className={`inline-flex max-w-full items-center gap-1.5 rounded-full py-1.5 px-3 text-xs leading-none transition-all ${
+        className={`press inline-flex max-w-full items-center gap-1.5 rounded-full py-1.5 px-3 text-xs leading-none transition-[transform,background-color,color,border-color] ${
           editing ? "ring-2 ring-ring/40" : ""
         } ${
           scoring
