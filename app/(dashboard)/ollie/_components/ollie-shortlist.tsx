@@ -3,6 +3,8 @@
 import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
+import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { commitSchool, getShortlist } from "../service";
 import type { ShortlistItem, ShortlistView } from "../types";
 import { WARM, WARM_SOFT } from "./ollie-theme";
@@ -69,12 +71,14 @@ function Row({
   laneTitle,
   onCommit,
   committing,
+  pendingAction,
 }: {
   item: ShortlistItem;
   index: number;
   laneTitle?: string;
   onCommit?: (item: ShortlistItem, action: "add" | "remove" | "commit" | "uncommit") => void;
   committing?: boolean;
+  pendingAction?: string | null;
 }) {
   const c = item.committed ? { label: "Your school", color: "var(--primary)" } : (CATEGORY[item.category ?? ""] ?? CATEGORY.HIGH_UNCERTAINTY);
   // The lane header already names the lane — the card pill repeats it only when
@@ -219,8 +223,9 @@ function Row({
                   type="button"
                   disabled={committing}
                   onClick={() => onCommit(item, "commit")}
-                  className="cta-btn mt-3 w-full rounded-full bg-primary px-3 py-1.5 text-[11px] font-bold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-40"
+                  className="cta-btn mt-3 flex w-full items-center justify-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-[11px] font-bold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-40"
                 >
+                  {pendingAction === "commit" && <Loader2 className="size-3 animate-spin" strokeWidth={2.5} />}
                   This is my school — commit
                 </button>
               )}
@@ -229,16 +234,18 @@ function Row({
         </AnimatePresence>
       </div>
 
-      {/* Footer: quick actions always visible, quiet */}
-      <div className="flex items-center gap-1 border-t border-border/60 px-2 py-1.5">
+      {/* Actions: quiet text links inside the card — color and hover carry the
+          clickability, not chrome */}
+      <div className="flex items-center gap-4 px-4 pb-3.5 pt-1">
         {onCommit && item.institutionId && !pinned && (
           <button
             type="button"
             disabled={committing}
             onClick={() => onCommit(item, "add")}
-            className="press rounded-full border border-border bg-card px-3 py-1.5 text-[11px] font-semibold text-foreground shadow-xs transition-colors hover:border-primary/40 hover:text-primary disabled:opacity-40"
+            className="flex items-center gap-1.5 text-[11.5px] font-semibold text-muted-foreground transition-colors hover:text-primary disabled:opacity-40"
           >
             Keep on my list
+            {pendingAction === "add" && <span className="appear-delayed"><Loader2 className="size-3 animate-spin text-primary" strokeWidth={2.5} /></span>}
           </button>
         )}
         {onCommit && item.institutionId && !item.committed && (
@@ -247,9 +254,10 @@ function Row({
             disabled={committing}
             onClick={() => onCommit(item, "remove")}
             title="Takes it off and keeps it off — you can always add it back by name"
-            className="press rounded-full border border-border bg-card px-3 py-1.5 text-[11px] font-semibold text-muted-foreground shadow-xs transition-colors hover:border-loss/40 hover:text-loss disabled:opacity-40"
+            className="flex items-center gap-1.5 text-[11.5px] font-semibold text-muted-foreground transition-colors hover:text-loss disabled:opacity-40"
           >
             Not for me
+            {pendingAction === "remove" && <span className="appear-delayed"><Loader2 className="size-3 animate-spin text-loss" strokeWidth={2.5} /></span>}
           </button>
         )}
         {item.breakdown.length > 0 && (
@@ -257,11 +265,7 @@ function Row({
             type="button"
             onClick={() => setOpen((o) => !o)}
             aria-expanded={open}
-            className={`press ml-auto flex items-center gap-1 rounded-full border px-3 py-1.5 text-[11px] font-bold transition-colors ${
-              open
-                ? "border-primary bg-primary text-primary-foreground"
-                : "border-primary/35 bg-primary/5 text-primary hover:bg-primary/10"
-            }`}
+            className="ml-auto flex items-center gap-0.5 text-[11.5px] font-bold text-primary transition-opacity hover:opacity-75"
           >
             {open ? "Hide the evidence" : "Why this one"}
             <span className={`inline-block transition-transform duration-200 ${open ? "rotate-90" : ""}`}>›</span>
@@ -278,6 +282,8 @@ export function OllieShortlist({ refreshKey, refreshing = false }: { refreshKey:
   const [view, setView] = useState<ShortlistView | null>(null);
   const [loading, startLoad] = useTransition();
   const [committing, startCommit] = useTransition();
+  // WHICH action on WHICH card is in flight — every button shows its own work.
+  const [pending, setPending] = useState<{ id: string; action: string } | null>(null);
 
   useEffect(() => {
     startLoad(async () => {
@@ -288,14 +294,25 @@ export function OllieShortlist({ refreshKey, refreshing = false }: { refreshKey:
 
   // Commit / take it back, then re-read — the decision is the learner's alone,
   // recorded on their twin exactly like saying it to Ollie.
+  const ACTION_DONE: Record<string, (name: string) => string> = {
+    add: (n) => `${n} is on your picks — it stays until you take it off`,
+    remove: (n) => `${n} removed — it won't come back unless you ask`,
+    commit: (n) => `${n} is your school now`,
+    uncommit: () => "Commitment taken back — your full list is open again",
+  };
   const onCommit = (item: ShortlistItem, action: "add" | "remove" | "commit" | "uncommit") => {
-    if (!item.institutionId) return;
+    if (!item.institutionId || pending) return;
+    setPending({ id: item.optionId, action });
     startCommit(async () => {
       const res = await commitSchool(item.institutionId!, action);
       if (res.ok) {
         const fresh = await getShortlist();
         if (fresh.ok) setView(fresh.view);
+        toast.success(ACTION_DONE[action](item.institution));
+      } else {
+        toast.error(res.message || "That didn't go through — nothing changed.");
       }
+      setPending(null);
     });
   };
 
@@ -357,9 +374,10 @@ export function OllieShortlist({ refreshKey, refreshing = false }: { refreshKey:
               onClick={() =>
                 onCommit({ institutionId: view.committed!.institutionId } as ShortlistItem, "uncommit")
               }
-              className="shrink-0 rounded-full px-2.5 py-1 text-[10px] font-semibold text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary disabled:opacity-40"
+              className="flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-semibold text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary disabled:opacity-40"
             >
               Take it back
+              {pending?.action === "uncommit" && <span className="appear-delayed"><Loader2 className="size-2.5 animate-spin text-primary" strokeWidth={2.5} /></span>}
             </button>
           </div>
         )}
@@ -409,7 +427,15 @@ export function OllieShortlist({ refreshKey, refreshing = false }: { refreshKey:
                     {l.blurb && <p className="mt-0.5 px-4 pl-7 text-[10.5px] leading-snug text-muted-foreground">{l.blurb}</p>}
                     <ul className="space-y-2.5 px-3 pb-1 pt-2">
                       {l.items.map((item) => (
-                        <Row key={item.optionId} item={item} index={idx++} laneTitle={l.title} onCommit={onCommit} committing={committing} />
+                        <Row
+                          key={item.optionId}
+                          item={item}
+                          index={idx++}
+                          laneTitle={l.title}
+                          onCommit={onCommit}
+                          committing={committing}
+                          pendingAction={pending?.id === item.optionId ? pending.action : null}
+                        />
                       ))}
                     </ul>
                   </div>
