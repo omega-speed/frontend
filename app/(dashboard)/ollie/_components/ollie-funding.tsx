@@ -2,9 +2,9 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronRight } from "lucide-react";
+import { ArrowUpRight, ChevronRight } from "lucide-react";
 import dayjs from "dayjs";
-import { getFunding } from "../service";
+import { getFunding, hideAward, setAwardStatus } from "../service";
 import type { FundingAward, FundingView } from "../types";
 import { WARM, WARM_SOFT } from "./ollie-theme";
 import { PanelEmpty, PanelListSkeleton } from "./panel-bits";
@@ -25,9 +25,31 @@ function amountLabel(a: FundingAward): string {
   return one != null ? money(one) : "Amount varies";
 }
 
-function Row({ award, index }: { award: FundingAward; index: number }) {
+const MY_STATUS: Record<string, { label: string; className: string }> = {
+  applying: { label: "applying", className: "bg-primary/10 text-primary" },
+  applied: { label: "applied", className: "bg-social/15 text-social" },
+  won: { label: "won", className: "bg-win/15 text-win" },
+  missed: { label: "not this time", className: "bg-muted text-muted-foreground" },
+};
+
+function Row({
+  award,
+  index,
+  onStatus,
+  onHide,
+  onAnswer,
+  busy,
+}: {
+  award: FundingAward;
+  index: number;
+  onStatus: (award: FundingAward, status: "applying" | "applied" | "won" | "missed" | null) => void;
+  onHide: (award: FundingAward) => void;
+  onAnswer: (question: string) => void;
+  busy: boolean;
+}) {
   const [open, setOpen] = useState(false);
   const o = OUTCOME[award.outcome] ?? OUTCOME.UNCERTAIN;
+  const mine = award.myStatus ? MY_STATUS[award.myStatus] : null;
   return (
     <motion.li
       layout
@@ -39,9 +61,14 @@ function Row({ award, index }: { award: FundingAward; index: number }) {
     >
       <div className="flex items-baseline justify-between gap-3">
         <h3 className="text-[15px] font-semibold leading-snug text-foreground">{award.name}</h3>
-        <span className="flex shrink-0 items-center gap-1.5 text-[11px] font-semibold" style={{ color: o.color }}>
-          <span className="size-1.5 rounded-full" style={{ background: o.color }} aria-hidden />
-          {o.label}
+        <span className="flex shrink-0 items-center gap-2">
+          {mine && (
+            <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold uppercase ${mine.className}`}>{mine.label}</span>
+          )}
+          <span className="flex items-center gap-1.5 text-[11px] font-semibold" style={{ color: o.color }}>
+            <span className="size-1.5 rounded-full" style={{ background: o.color }} aria-hidden />
+            {o.label}
+          </span>
         </span>
       </div>
       <p className="mt-0.5 text-xs text-muted-foreground">
@@ -93,9 +120,15 @@ function Row({ award, index }: { award: FundingAward; index: number }) {
                     <div className="pt-1.5">
                       <p className="text-[10px] font-bold uppercase text-muted-foreground/70">Still to answer</p>
                       {award.openQuestions.map((q, i) => (
-                        <p key={i} className="text-xs leading-relaxed text-muted-foreground/80">
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={() => onAnswer(q)}
+                          title="Answer this in the chat"
+                          className="press block text-left text-xs leading-relaxed text-muted-foreground/80 transition-[transform,color] hover:text-primary"
+                        >
                           {q.charAt(0).toUpperCase() + q.slice(1)}
-                        </p>
+                        </button>
                       ))}
                     </div>
                   )}
@@ -105,6 +138,65 @@ function Row({ award, index }: { award: FundingAward; index: number }) {
           </AnimatePresence>
         </div>
       )}
+
+      {/* The learner's moves: apply link, the ladder, and an honest way out. */}
+      <div className="mt-2.5 flex items-center gap-4">
+        {award.url && (
+          <a
+            href={award.url.startsWith("http") ? award.url : `https://${award.url}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="press flex items-center text-[11px] font-semibold text-primary transition-[transform,opacity] hover:opacity-75"
+          >
+            Open the application
+            <ArrowUpRight className="ml-0.5 size-3" strokeWidth={2.5} aria-hidden />
+          </a>
+        )}
+        {!award.myStatus && (
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => onStatus(award, "applying")}
+            className="press text-[11px] font-semibold text-win transition-[transform,opacity] hover:opacity-75 disabled:opacity-40"
+          >
+            I&apos;m applying
+          </button>
+        )}
+        {award.myStatus === "applying" && (
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => onStatus(award, "applied")}
+            className="press text-[11px] font-semibold text-win transition-[transform,opacity] hover:opacity-75 disabled:opacity-40"
+          >
+            I applied
+          </button>
+        )}
+        {award.myStatus === "applied" && (
+          <span className="flex items-center gap-2">
+            <span className="text-[11px] text-muted-foreground">They said:</span>
+            <button type="button" disabled={busy} onClick={() => onStatus(award, "won")} className="press rounded-full bg-win/15 px-2.5 py-0.5 text-[11px] font-bold text-win hover:bg-win/25 disabled:opacity-40">
+              Won it
+            </button>
+            <button type="button" disabled={busy} onClick={() => onStatus(award, "missed")} className="press rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-semibold text-muted-foreground hover:text-foreground disabled:opacity-40">
+              Not this time
+            </button>
+          </span>
+        )}
+        {award.myStatus === "won" && (
+          <span className="text-[11px] font-semibold text-win">Get it in writing, then tell Ollie.</span>
+        )}
+        {!award.myStatus && (
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => onHide(award)}
+            className="press ml-auto text-[11px] text-muted-foreground/60 transition-[transform,color] hover:text-loss disabled:opacity-40"
+          >
+            Not for me
+          </button>
+        )}
+      </div>
     </motion.li>
   );
 }
@@ -113,6 +205,7 @@ function Row({ award, index }: { award: FundingAward; index: number }) {
 export function OllieFunding({ refreshKey, refreshing = false }: { refreshKey: number; refreshing?: boolean }) {
   const [view, setView] = useState<FundingView | null>(null);
   const [loading, startLoad] = useTransition();
+  const [acting, startAct] = useTransition();
 
   useEffect(() => {
     startLoad(async () => {
@@ -120,6 +213,32 @@ export function OllieFunding({ refreshKey, refreshing = false }: { refreshKey: n
       if (res.ok) setView(res.view);
     });
   }, [refreshKey]);
+
+  // Ladder rung — optimistic, honest rollback.
+  const onStatus = (award: FundingAward, status: FundingAward["myStatus"]) => {
+    setView((v) => v && { ...v, awards: v.awards.map((a) => (a.id === award.id ? { ...a, myStatus: status } : a)) });
+    startAct(async () => {
+      const res = await setAwardStatus(award.id, status);
+      if (!res.ok) {
+        setView((v) => v && { ...v, awards: v.awards.map((a) => (a.id === award.id ? { ...a, myStatus: award.myStatus } : a)) });
+      }
+    });
+  };
+
+  // "Not for me" — the card collapses out; the decision is preserved and undoable.
+  const onHide = (award: FundingAward) => {
+    setView((v) => v && { ...v, awards: v.awards.filter((a) => a.id !== award.id) });
+    startAct(async () => {
+      const res = await hideAward(award.id);
+      if (!res.ok) setView((v) => v && { ...v, awards: [...v.awards, award] });
+    });
+  };
+
+  // Hand the open question to the chat pane: it drops a note turn and focuses
+  // the input, so answering takes one keystroke, not a tab hunt.
+  const onAnswer = (question: string) => {
+    window.dispatchEvent(new CustomEvent("ollie:answer-hint", { detail: { hint: question } }));
+  };
 
   const busy = refreshing || loading;
   const count = view?.awards.length ?? 0;
@@ -183,7 +302,7 @@ export function OllieFunding({ refreshKey, refreshing = false }: { refreshKey: n
             <ul className={`transition-opacity duration-300 ${busy ? "opacity-40" : "opacity-100"}`}>
               <AnimatePresence initial={false}>
                 {view!.awards.map((a, i) => (
-                  <Row key={a.id} award={a} index={i} />
+                  <Row key={a.id} award={a} index={i} onStatus={onStatus} onHide={onHide} onAnswer={onAnswer} busy={acting} />
                 ))}
               </AnimatePresence>
             </ul>

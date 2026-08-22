@@ -136,6 +136,8 @@ export interface FundingAward {
   schoolTied: string | null;
   renewable: boolean | null;
   url: string | null;
+  // The learner's own ladder for this award; null = not started.
+  myStatus: "applying" | "applied" | "won" | "missed" | null;
 }
 export interface FundingView {
   ready: boolean;

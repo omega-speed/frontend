@@ -83,6 +83,33 @@ export async function getShortlist(): Promise<ShortlistResult> {
   }
 }
 
+// POST /awards/:id/status — the learner's ladder rung for a scholarship.
+export async function setAwardStatus(
+  opportunityId: string,
+  status: "applying" | "applied" | "won" | "missed" | null,
+): Promise<{ ok: boolean; message?: string }> {
+  const user = await getCurrentUser();
+  if (!user) return { ok: false, message: "Please sign in again." };
+  try {
+    const res = await api.post(`awards/${opportunityId}/status`, { status });
+    return { ok: Boolean(res?.success), message: res?.message };
+  } catch {
+    return { ok: false, message: "Couldn't record that." };
+  }
+}
+
+// POST /awards/:id/hide — "not for me", a preserved decision.
+export async function hideAward(opportunityId: string): Promise<{ ok: boolean; message?: string }> {
+  const user = await getCurrentUser();
+  if (!user) return { ok: false, message: "Please sign in again." };
+  try {
+    const res = await api.post(`awards/${opportunityId}/hide`, {});
+    return { ok: Boolean(res?.success), message: res?.message };
+  } catch {
+    return { ok: false, message: "Couldn't hide that." };
+  }
+}
+
 // GET /ollie/funding — the learner's top assessed awards for the Funding tab.
 export type FundingResult = { ok: true; view: FundingView } | { ok: false; message: string };
 

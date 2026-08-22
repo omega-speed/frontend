@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useRef, useState } from "react";
+import { use, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { askOllie, confirmDeclare, decideOllieAction, undoDeclare } from "../service";
 import type { ConversationMessage, Declaration, OllieAnswer } from "../types";
@@ -50,6 +50,22 @@ export function AskOllie({
   const [busy, setBusy] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  // A panel (e.g. a scholarship's "still to answer") can hand a question to the
+  // chat: we drop it in as a quiet note and put the cursor in the input.
+  useEffect(() => {
+    const onHint = (e: Event) => {
+      const hint = (e as CustomEvent<{ hint: string }>).detail?.hint;
+      if (!hint) return;
+      setTurns((t) => [...t, { role: "note", text: `Answer this and I'll re-check that award: ${hint}` }]);
+      requestAnimationFrame(() => {
+        inputRef.current?.focus();
+        endRef.current?.scrollIntoView({ behavior: "smooth" });
+      });
+    };
+    window.addEventListener("ollie:answer-hint", onHint);
+    return () => window.removeEventListener("ollie:answer-hint", onHint);
+  }, []);
 
   const scrollToEnd = () =>
     requestAnimationFrame(() => endRef.current?.scrollIntoView({ behavior: "smooth" }));
