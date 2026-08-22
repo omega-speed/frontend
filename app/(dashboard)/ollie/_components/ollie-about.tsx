@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { PanelListSkeleton } from "./panel-bits";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2 } from "lucide-react";
 import { useCalm } from "@/components/molecules/calm-provider";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { confirmDeclare, getAbout, undoDeclare } from "../service";
+import { confirmDeclare, getAbout, quickAdd, undoDeclare } from "../service";
 import type { AboutFact, AboutView } from "../types";
 
 // The About You panel: a navy TWIN CARD with the gold completeness meter, then
@@ -306,6 +306,13 @@ export function OllieAbout({ refreshKey, onProfileChanged }: { refreshKey: numbe
 
         {view && !empty && (
           <div className="space-y-5">
+            <QuickAdd
+              knownNames={new Set(all.map((f) => f.name))}
+              onSaved={(scoringChanged) => {
+                void reload();
+                if (scoringChanged) onProfileChanged?.();
+              }}
+            />
             {[...grouped, ...(other.length ? [{ key: "other", label: "Also noted", facts: other }] : [])].map((g) => (
               <section key={g.key}>
                 <p className="mb-2 text-[10px] font-black uppercase text-muted-foreground">{g.label}</p>
@@ -347,6 +354,106 @@ export function OllieAbout({ refreshKey, onProfileChanged }: { refreshKey: numbe
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+
+// Quick add: the second door. One fact in your own words — the SAME interpreter
+// that reads chat reads this, so there is no form schema and nothing to block.
+const QUICK_CHIPS: { label: string; template: string; names: string[] }[] = [
+  { label: "grade", template: "I'm in grade ", names: ["grade_level", "current_grade"] },
+  { label: "GPA", template: "My GPA is ", names: ["gpa"] },
+  { label: "home state", template: "I live in ", names: ["residency_state"] },
+  { label: "budget", template: "My yearly budget is ", names: ["annual_budget"] },
+  { label: "field", template: "I want to study ", names: ["discipline", "disciplines"] },
+];
+
+function QuickAdd({
+  knownNames,
+  onSaved,
+}: {
+  knownNames: Set<string>;
+  onSaved: (scoringChanged: boolean) => void;
+}) {
+  const [text, setText] = useState("");
+  const [note, setNote] = useState<string | null>(null);
+  const [saving, startSave] = useTransition();
+  const inputRef = useRef<HTMLInputElement>(null);
+  const chips = QUICK_CHIPS.filter((c) => !c.names.some((n) => knownNames.has(n)));
+
+  const add = () => {
+    const t = text.trim();
+    if (!t || saving) return;
+    setNote(null);
+    startSave(async () => {
+      const res = await quickAdd(t);
+      if (res.ok && res.understood && (res.saved?.length ?? 0) > 0) {
+        setText("");
+        setNote(`Saved: ${res.saved!.map((d) => d.label).join(", ")}`);
+        onSaved(Boolean(res.scoringChanged));
+      } else if (res.ok && res.skippedSensitive) {
+        setNote("That one's personal — tell Ollie in the chat so you can confirm it explicitly.");
+      } else if (res.ok) {
+        setNote("Didn't catch that as a fact about you — try the chat, Ollie will ask back.");
+      } else {
+        setNote(res.message ?? "Couldn't save that just now.");
+      }
+    });
+  };
+
+  return (
+    <div className="mx-5 mt-3 rounded-2xl border border-border bg-card px-4 py-3">
+      <p className="text-[10px] font-black uppercase text-muted-foreground">Quick add</p>
+      <div className="mt-1.5 flex items-center gap-2">
+        <input
+          ref={inputRef}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && add()}
+          placeholder="One thing, like: GPA 3.8"
+          className="h-8 flex-1 rounded-full border border-input bg-background px-3 text-xs outline-none transition-[border-color,background-color] duration-200 placeholder:text-muted-foreground/40 focus-visible:border-primary/60 focus-visible:bg-card"
+        />
+        <button
+          type="button"
+          disabled={saving || !text.trim()}
+          onClick={add}
+          className="press flex items-center gap-1.5 text-[11px] font-bold text-primary transition-opacity hover:opacity-75 disabled:opacity-40"
+        >
+          Add
+          {saving && <span className="appear-delayed"><Loader2 className="size-3 animate-spin" strokeWidth={2.5} /></span>}
+        </button>
+      </div>
+      {chips.length > 0 && (
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {chips.map((c) => (
+            <button
+              key={c.label}
+              type="button"
+              onClick={() => {
+                setText(c.template);
+                inputRef.current?.focus();
+              }}
+              className="press rounded-full bg-accent px-2.5 py-1 text-[11px] font-medium text-accent-foreground transition-[transform,background-color] hover:bg-primary/15"
+            >
+              {c.label}
+            </button>
+          ))}
+        </div>
+      )}
+      <AnimatePresence initial={false}>
+        {note && (
+          <motion.p
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0, transition: { duration: 0.15 } }}
+            transition={{ duration: 0.22 }}
+            className="mt-2 overflow-hidden text-[11px] leading-relaxed text-muted-foreground"
+          >
+            {note}
+          </motion.p>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

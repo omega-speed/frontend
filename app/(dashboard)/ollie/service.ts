@@ -83,6 +83,27 @@ export async function getShortlist(): Promise<ShortlistResult> {
   }
 }
 
+// POST /ollie/quick-add — one fact in your own words, no chat turn. Same
+// interpreter pipeline as chat; sensitive facts still route through chat confirm.
+export async function quickAdd(text: string): Promise<{
+  ok: boolean;
+  saved?: Declaration[];
+  skippedSensitive?: number;
+  scoringChanged?: boolean;
+  understood?: boolean;
+  message?: string;
+}> {
+  const user = await getCurrentUser();
+  if (!user) return { ok: false, message: "Please sign in again." };
+  try {
+    const res = await api.post("ollie/quick-add", { text });
+    if (res?.success && res.data) return { ok: true, ...(res.data as object) };
+    return { ok: false, message: res?.message ?? "Couldn't save that just now." };
+  } catch {
+    return { ok: false, message: "Couldn't save that just now." };
+  }
+}
+
 // POST /ollie/applications/start — a labeled button press IS the consent; the
 // tracker (deadlines, checklist, starter tasks) starts on the spot.
 export async function startApplication(institutionId: string): Promise<{ ok: boolean; already?: boolean; name?: string; message?: string }> {
