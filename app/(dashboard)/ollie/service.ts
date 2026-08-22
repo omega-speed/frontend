@@ -318,7 +318,7 @@ export async function deleteTask(id: string): Promise<{ ok: boolean }> {
 // their tracker: submitted, withdrawn. Appends a new attributed version.
 export async function updateApplicationStatus(
   applicationId: string,
-  status: "SUBMITTED" | "WITHDRAWN" | "IN_PROGRESS",
+  status: "SUBMITTED" | "WITHDRAWN" | "IN_PROGRESS" | "ENROLLED",
   statusReason?: string,
 ): Promise<{ ok: boolean; message?: string }> {
   const user = await getCurrentUser();

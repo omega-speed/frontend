@@ -249,6 +249,8 @@ export interface ApplicationSummary {
   status: ApplicationStatus;
   statusReason: string | null;
   createdAt: string;
+  // The school's latest recorded answer — "ADMITTED" unlocks the real commit.
+  latestDecision: "ADMITTED" | "DENIED" | "WAITLISTED" | "DEFERRED" | null;
 }
 
 export interface ApplicationRequirementRow {

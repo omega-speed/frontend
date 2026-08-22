@@ -6,7 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ArrowUpRight, ChevronRight, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import dayjs from "dayjs";
-import { getApplications, getTasks, recordDecision, syncApplication, updateApplicationStatus } from "../service";
+import { commitSchool, getApplications, getTasks, recordDecision, syncApplication, updateApplicationStatus } from "../service";
 import type { LearnerTask, TrackedApplication } from "../types";
 import { PanelEmpty, PanelListSkeleton } from "./panel-bits";
 import { TaskList } from "./task-list";
@@ -70,6 +70,7 @@ function Row({
   index,
   onSync,
   onLifeEvent,
+  onEnroll,
   syncing,
   lifeEventPending,
   openTasks,
@@ -79,6 +80,7 @@ function Row({
   index: number;
   onSync: (id: string) => void;
   onLifeEvent: (appId: string, event: "submitted" | "withdrawn" | "admitted" | "denied" | "waitlisted") => void;
+  onEnroll: (app: TrackedApplication) => void;
   syncing: boolean;
   lifeEventPending: boolean;
   openTasks: number;
@@ -309,7 +311,19 @@ function Row({
               transition={{ duration: 0.18, ease: [0.23, 1, 0.32, 1] }}
               className="flex items-center gap-4 px-4 pb-3.5 pt-1"
             >
-              {!submitted ? (
+              {app.application.latestDecision === "ADMITTED" && app.application.status !== "ENROLLED" ? (
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => onEnroll(app)}
+                  className="cta-btn press flex items-center gap-1.5 rounded-full bg-primary px-3.5 py-1.5 text-[11.5px] font-bold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-40"
+                >
+                  This is where I&apos;m going
+                  {lifeEventPending && (
+                    <span className="appear-delayed"><Loader2 className="size-3 animate-spin" strokeWidth={2.5} /></span>
+                  )}
+                </button>
+              ) : !submitted ? (
                 <button
                   type="button"
                   disabled={busy}
@@ -429,6 +443,25 @@ export function OllieApplications({ refreshKey }: { refreshKey: number }) {
     });
   };
 
+  // The REAL commit moment: an admit the learner says yes to. Records
+  // ENROLLED on the application and commits the school — My Plan, Funding,
+  // and Ollie's voice all reorient; the rest of the list becomes backups.
+  const onEnroll = (app: TrackedApplication) => {
+    if (syncingApp || lifeEventApp) return;
+    setLifeEventApp(app.application.id);
+    startTransition(async () => {
+      const res = await updateApplicationStatus(app.application.id, "ENROLLED", "Learner chose this school after an admit");
+      if (res.ok) {
+        await commitSchool(app.application.institutionId, "commit");
+        toast.success(`${app.school} it is. Everything now plans around it — congratulations.`);
+      } else {
+        toast.error(res.message || "That didn't save — nothing changed.");
+      }
+      load();
+      setLifeEventApp(null);
+    });
+  };
+
   if (error) return <p className="px-5 py-6 text-sm text-muted-foreground">{error}</p>;
   if (apps === null) return <PanelListSkeleton rows={3} />;
   if (apps.length === 0) {
@@ -507,6 +540,7 @@ export function OllieApplications({ refreshKey }: { refreshKey: number }) {
             onSync={onSync}
             syncing={syncingApp === a.application.id}
             onLifeEvent={onLifeEvent}
+            onEnroll={onEnroll}
             lifeEventPending={lifeEventApp === a.application.id}
             openTasks={allTasks.filter((t) => t.applicationId === a.application.id && !t.done).length}
             onTasksChanged={loadTasks}

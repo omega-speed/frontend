@@ -219,18 +219,8 @@ function Row({
                 <span className="font-bold">What fit is not:</span> your chance of getting in, and not a ranking. It
                 changes when you change — update your profile and every score recalculates.
               </p>
-              {/* The big decision lives here, deliberately — not on the card face */}
-              {onCommit && item.institutionId && !item.committed && (
-                <button
-                  type="button"
-                  disabled={committing}
-                  onClick={() => onCommit(item, "commit")}
-                  className="cta-btn mt-3 flex w-full items-center justify-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-[11px] font-bold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-40"
-                >
-                  {pendingAction === "commit" && <Loader2 className="size-3 animate-spin" strokeWidth={2.5} />}
-                  This is my school — commit
-                </button>
-              )}
+              {/* The COMMIT moment moved to the Applications card — it belongs
+                  after an acceptance, not while exploring (owner decision). */}
               {onStartApplication && item.institutionId && (
                 <button
                   type="button"
