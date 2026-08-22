@@ -157,3 +157,10 @@ Baked-in rules — new components must follow them:
   with soft borders (`border-border/50`) — content scrolls underneath.
 - Reduced motion + calm mode already collapse all of this to instant states —
   keep any new animation inside those rules.
+
+## CTA Register (owner decision, 2026-08-14)
+
+CTAs are **action-first verbs** — imperative, task-shaped, no first-person
+chatter: "View details", "Add to my tasks", "Mark as applied", "Record result:
+Got it / Didn't get it", "Remove from my list". Status pills may use noun
+states ("in my tasks", "applied", "won"). Never "I'm applying"-style CTAs.

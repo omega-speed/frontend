@@ -5,7 +5,7 @@ import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronRight, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { commitSchool, getShortlist } from "../service";
+import { commitSchool, getShortlist, startApplication } from "../service";
 import type { ShortlistItem, ShortlistView } from "../types";
 import { WARM, WARM_SOFT } from "./ollie-theme";
 import { PanelEmpty, PanelListSkeleton } from "./panel-bits";
@@ -70,6 +70,7 @@ function Row({
   index,
   laneTitle,
   onCommit,
+  onStartApplication,
   committing,
   pendingAction,
 }: {
@@ -77,6 +78,7 @@ function Row({
   index: number;
   laneTitle?: string;
   onCommit?: (item: ShortlistItem, action: "add" | "remove" | "commit" | "uncommit") => void;
+  onStartApplication?: (item: ShortlistItem) => void;
   committing?: boolean;
   pendingAction?: string | null;
 }) {
@@ -229,6 +231,17 @@ function Row({
                   This is my school — commit
                 </button>
               )}
+              {onStartApplication && item.institutionId && (
+                <button
+                  type="button"
+                  disabled={committing}
+                  onClick={() => onStartApplication(item)}
+                  className="press mt-2 flex w-full items-center justify-center gap-1.5 rounded-full border border-primary/40 px-3 py-1.5 text-[11px] font-bold text-primary transition-[transform,background-color,color] hover:bg-primary/10 disabled:opacity-40"
+                >
+                  {pendingAction === "start-app" && <Loader2 className="size-3 animate-spin" strokeWidth={2.5} />}
+                  Start application
+                </button>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
@@ -309,6 +322,25 @@ export function OllieShortlist({ refreshKey, refreshing = false }: { refreshKey:
         const fresh = await getShortlist();
         if (fresh.ok) setView(fresh.view);
         toast.success(ACTION_DONE[action](item.institution));
+      } else {
+        toast.error(res.message || "That didn't go through — nothing changed.");
+      }
+      setPending(null);
+    });
+  };
+
+  // Start tracking an application from the card — the press is the consent.
+  const onStartApplication = (item: ShortlistItem) => {
+    if (!item.institutionId || pending) return;
+    setPending({ id: item.optionId, action: "start-app" });
+    startCommit(async () => {
+      const res = await startApplication(item.institutionId!);
+      if (res.ok) {
+        toast.success(
+          res.already
+            ? `You're already tracking ${res.name ?? item.institution} — it's on your Applications tab.`
+            : `Tracking your ${res.name ?? item.institution} application. Deadlines and a checklist are on your Applications tab.`,
+        );
       } else {
         toast.error(res.message || "That didn't go through — nothing changed.");
       }
@@ -432,7 +464,7 @@ export function OllieShortlist({ refreshKey, refreshing = false }: { refreshKey:
                           item={item}
                           index={idx++}
                           laneTitle={l.title}
-                          onCommit={onCommit}
+                          onCommit={onCommit} onStartApplication={onStartApplication}
                           committing={committing}
                           pendingAction={pending?.id === item.optionId ? pending.action : null}
                         />

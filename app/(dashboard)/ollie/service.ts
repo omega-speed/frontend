@@ -83,6 +83,23 @@ export async function getShortlist(): Promise<ShortlistResult> {
   }
 }
 
+// POST /ollie/applications/start — a labeled button press IS the consent; the
+// tracker (deadlines, checklist, starter tasks) starts on the spot.
+export async function startApplication(institutionId: string): Promise<{ ok: boolean; already?: boolean; name?: string; message?: string }> {
+  const user = await getCurrentUser();
+  if (!user) return { ok: false, message: "Please sign in again." };
+  try {
+    const res = await api.post("ollie/applications/start", { institutionId });
+    if (res?.success && res.data) {
+      const d = res.data as { already: boolean; name: string };
+      return { ok: true, already: d.already, name: d.name };
+    }
+    return { ok: false, message: res?.message ?? "Couldn't start that just now." };
+  } catch {
+    return { ok: false, message: "Couldn't start that just now." };
+  }
+}
+
 // POST /awards/:id/status — the learner's ladder rung for a scholarship.
 export async function setAwardStatus(
   opportunityId: string,

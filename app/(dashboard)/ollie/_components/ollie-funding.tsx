@@ -20,16 +20,28 @@ const OUTCOME: Record<string, { label: string; color: string }> = {
 const money = (n: number) => `$${Math.round(n).toLocaleString("en-US")}`;
 
 function amountLabel(a: FundingAward): string {
-  if (a.amountMin != null && a.amountMax != null && a.amountMin !== a.amountMax) return `${money(a.amountMin)}–${money(a.amountMax)}`;
+  if (a.amountMin != null && a.amountMax != null && a.amountMin !== a.amountMax)
+    return `${money(a.amountMin)}–${money(a.amountMax)}`;
   const one = a.amountMax ?? a.amountMin;
   return one != null ? money(one) : "Amount varies";
 }
 
+// Tapping the pill steps BACK one rung — the built-in undo for a mis-tap.
+const PREV_STATUS: Record<string, "applying" | "applied" | null> = {
+  applying: null,
+  applied: "applying",
+  won: "applied",
+  missed: "applied",
+};
+
 const MY_STATUS: Record<string, { label: string; className: string }> = {
-  applying: { label: "applying", className: "bg-primary/10 text-primary" },
+  applying: { label: "in my tasks", className: "bg-primary/10 text-primary" },
   applied: { label: "applied", className: "bg-social/15 text-social" },
   won: { label: "won", className: "bg-win/15 text-win" },
-  missed: { label: "not this time", className: "bg-muted text-muted-foreground" },
+  missed: {
+    label: "didn\u2019t get it",
+    className: "bg-muted text-muted-foreground",
+  },
 };
 
 function Row({
@@ -42,7 +54,10 @@ function Row({
 }: {
   award: FundingAward;
   index: number;
-  onStatus: (award: FundingAward, status: "applying" | "applied" | "won" | "missed" | null) => void;
+  onStatus: (
+    award: FundingAward,
+    status: "applying" | "applied" | "won" | "missed" | null,
+  ) => void;
   onHide: (award: FundingAward) => void;
   onAnswer: (question: string) => void;
   busy: boolean;
@@ -56,34 +71,59 @@ function Row({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, transition: { duration: 0.15 } }}
-      transition={{ duration: 0.28, delay: index * 0.05, layout: { type: "spring", bounce: 0, duration: 0.45 } }}
+      transition={{
+        duration: 0.28,
+        delay: index * 0.05,
+        layout: { type: "spring", bounce: 0, duration: 0.45 },
+      }}
       className="border-b border-border/70 px-5 py-4 last:border-b-0"
     >
       <div className="flex items-baseline justify-between gap-3">
-        <h3 className="text-[15px] font-semibold leading-snug text-foreground">{award.name}</h3>
+        <h3 className="text-[15px] font-semibold leading-snug text-foreground">
+          {award.name}
+        </h3>
         <span className="flex shrink-0 items-center gap-2">
-          {mine && (
-            <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold uppercase ${mine.className}`}>{mine.label}</span>
+          {mine && award.myStatus && (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => onStatus(award, PREV_STATUS[award.myStatus!] ?? null)}
+              title="Tapped by mistake? This steps back one."
+              className={`press rounded-full px-2 py-0.5 text-[9px] font-bold uppercase transition-[transform,background-color,color] disabled:opacity-40 ${mine.className}`}
+            >
+              {mine.label}
+            </button>
           )}
-          <span className="flex items-center gap-1.5 text-[11px] font-semibold" style={{ color: o.color }}>
-            <span className="size-1.5 rounded-full" style={{ background: o.color }} aria-hidden />
+          <span
+            className="flex items-center gap-1.5 text-[11px] font-semibold"
+            style={{ color: o.color }}
+          >
+            <span
+              className="size-1.5 rounded-full"
+              style={{ background: o.color }}
+              aria-hidden
+            />
             {o.label}
           </span>
         </span>
       </div>
       <p className="mt-0.5 text-xs text-muted-foreground">
-        <span className="font-semibold text-foreground">{amountLabel(award)}</span>
+        <span className="font-semibold text-foreground">
+          {amountLabel(award)}
+        </span>
         {award.renewable ? ", renewable each year" : ""} from {award.sponsor}
       </p>
       {award.deadline && (
         <p
           className={`mt-0.5 text-xs ${
-            dayjs(award.deadline).diff(dayjs(), "day") <= 14 && dayjs(award.deadline).isAfter(dayjs())
+            dayjs(award.deadline).diff(dayjs(), "day") <= 14 &&
+            dayjs(award.deadline).isAfter(dayjs())
               ? "font-semibold text-gold"
               : "text-muted-foreground"
           }`}
         >
-          Closes {dayjs(award.deadline).format("MMM D")}, {dayjs(award.deadline).fromNow()}
+          Closes {dayjs(award.deadline).format("MMM D")},{" "}
+          {dayjs(award.deadline).fromNow()}
         </p>
       )}
       {award.schoolTied && (
@@ -100,7 +140,11 @@ function Row({
             className="press flex items-center gap-1 text-[11px] font-semibold uppercase text-muted-foreground transition-[transform,color] hover:text-primary"
             aria-expanded={open}
           >
-            <ChevronRight className={`size-3 transition-transform duration-200 ${open ? "rotate-90" : ""}`} strokeWidth={2.5} aria-hidden />
+            <ChevronRight
+              className={`size-3 transition-transform duration-200 ${open ? "rotate-90" : ""}`}
+              strokeWidth={2.5}
+              aria-hidden
+            />
             {open ? "Hide the why" : "Why you qualify"}
           </button>
           <AnimatePresence initial={false}>
@@ -108,17 +152,28 @@ function Row({
               <motion.div
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0, transition: { duration: 0.15, ease: [0.23, 1, 0.32, 1] } }}
+                exit={{
+                  height: 0,
+                  opacity: 0,
+                  transition: { duration: 0.15, ease: [0.23, 1, 0.32, 1] },
+                }}
                 transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
                 className="overflow-hidden"
               >
                 <div className="mt-2 space-y-1 border-l border-border pl-3">
                   {award.why.map((w, i) => (
-                    <p key={i} className="text-xs leading-relaxed text-muted-foreground">{w}</p>
+                    <p
+                      key={i}
+                      className="text-xs leading-relaxed text-muted-foreground"
+                    >
+                      {w}
+                    </p>
                   ))}
                   {award.openQuestions.length > 0 && (
                     <div className="pt-1.5">
-                      <p className="text-[10px] font-bold uppercase text-muted-foreground/70">Still to answer</p>
+                      <p className="text-[10px] font-bold uppercase text-muted-foreground/70">
+                        Still to answer
+                      </p>
                       {award.openQuestions.map((q, i) => (
                         <button
                           key={i}
@@ -143,13 +198,19 @@ function Row({
       <div className="mt-2.5 flex items-center gap-4">
         {award.url && (
           <a
-            href={award.url.startsWith("http") ? award.url : `https://${award.url}`}
+            href={
+              award.url.startsWith("http") ? award.url : `https://${award.url}`
+            }
             target="_blank"
             rel="noopener noreferrer"
             className="press flex items-center text-[11px] font-semibold text-primary transition-[transform,opacity] hover:opacity-75"
           >
-            Open the application
-            <ArrowUpRight className="ml-0.5 size-3" strokeWidth={2.5} aria-hidden />
+            View details
+            <ArrowUpRight
+              className="ml-0.5 size-3"
+              strokeWidth={2.5}
+              aria-hidden
+            />
           </a>
         )}
         {!award.myStatus && (
@@ -159,7 +220,7 @@ function Row({
             onClick={() => onStatus(award, "applying")}
             className="press text-[11px] font-semibold text-win transition-[transform,opacity] hover:opacity-75 disabled:opacity-40"
           >
-            I&apos;m applying
+            Add to my tasks
           </button>
         )}
         {award.myStatus === "applying" && (
@@ -169,22 +230,36 @@ function Row({
             onClick={() => onStatus(award, "applied")}
             className="press text-[11px] font-semibold text-win transition-[transform,opacity] hover:opacity-75 disabled:opacity-40"
           >
-            I applied
+            Mark as applied
           </button>
         )}
         {award.myStatus === "applied" && (
           <span className="flex items-center gap-2">
-            <span className="text-[11px] text-muted-foreground">They said:</span>
-            <button type="button" disabled={busy} onClick={() => onStatus(award, "won")} className="press rounded-full bg-win/15 px-2.5 py-0.5 text-[11px] font-bold text-win hover:bg-win/25 disabled:opacity-40">
-              Won it
+            <span className="text-[11px] text-muted-foreground">
+              Record result:
+            </span>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => onStatus(award, "won")}
+              className="press rounded-full bg-win/15 px-2.5 py-0.5 text-[11px] font-bold text-win hover:bg-win/25 disabled:opacity-40"
+            >
+              Got it
             </button>
-            <button type="button" disabled={busy} onClick={() => onStatus(award, "missed")} className="press rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-semibold text-muted-foreground hover:text-foreground disabled:opacity-40">
-              Not this time
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => onStatus(award, "missed")}
+              className="press rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-semibold text-muted-foreground hover:text-foreground disabled:opacity-40"
+            >
+              Didn&apos;t get it
             </button>
           </span>
         )}
         {award.myStatus === "won" && (
-          <span className="text-[11px] font-semibold text-win">Get it in writing, then tell Ollie.</span>
+          <span className="text-[11px] font-semibold text-win">
+            Won. Get the offer in writing.
+          </span>
         )}
         {!award.myStatus && (
           <button
@@ -193,7 +268,7 @@ function Row({
             onClick={() => onHide(award)}
             className="press ml-auto text-[11px] text-muted-foreground/60 transition-[transform,color] hover:text-loss disabled:opacity-40"
           >
-            Not for me
+            Remove from my list
           </button>
         )}
       </div>
@@ -202,7 +277,13 @@ function Row({
 }
 
 // The Funding tab: top assessed awards, refreshed alongside the shortlist.
-export function OllieFunding({ refreshKey, refreshing = false }: { refreshKey: number; refreshing?: boolean }) {
+export function OllieFunding({
+  refreshKey,
+  refreshing = false,
+}: {
+  refreshKey: number;
+  refreshing?: boolean;
+}) {
   const [view, setView] = useState<FundingView | null>(null);
   const [loading, startLoad] = useTransition();
   const [acting, startAct] = useTransition();
@@ -216,18 +297,36 @@ export function OllieFunding({ refreshKey, refreshing = false }: { refreshKey: n
 
   // Ladder rung — optimistic, honest rollback.
   const onStatus = (award: FundingAward, status: FundingAward["myStatus"]) => {
-    setView((v) => v && { ...v, awards: v.awards.map((a) => (a.id === award.id ? { ...a, myStatus: status } : a)) });
+    setView(
+      (v) =>
+        v && {
+          ...v,
+          awards: v.awards.map((a) =>
+            a.id === award.id ? { ...a, myStatus: status } : a,
+          ),
+        },
+    );
     startAct(async () => {
       const res = await setAwardStatus(award.id, status);
       if (!res.ok) {
-        setView((v) => v && { ...v, awards: v.awards.map((a) => (a.id === award.id ? { ...a, myStatus: award.myStatus } : a)) });
+        setView(
+          (v) =>
+            v && {
+              ...v,
+              awards: v.awards.map((a) =>
+                a.id === award.id ? { ...a, myStatus: award.myStatus } : a,
+              ),
+            },
+        );
       }
     });
   };
 
   // "Not for me" — the card collapses out; the decision is preserved and undoable.
   const onHide = (award: FundingAward) => {
-    setView((v) => v && { ...v, awards: v.awards.filter((a) => a.id !== award.id) });
+    setView(
+      (v) => v && { ...v, awards: v.awards.filter((a) => a.id !== award.id) },
+    );
     startAct(async () => {
       const res = await hideAward(award.id);
       if (!res.ok) setView((v) => v && { ...v, awards: [...v.awards, award] });
@@ -237,7 +336,9 @@ export function OllieFunding({ refreshKey, refreshing = false }: { refreshKey: n
   // Hand the open question to the chat pane: it drops a note turn and focuses
   // the input, so answering takes one keystroke, not a tab hunt.
   const onAnswer = (question: string) => {
-    window.dispatchEvent(new CustomEvent("ollie:answer-hint", { detail: { hint: question } }));
+    window.dispatchEvent(
+      new CustomEvent("ollie:answer-hint", { detail: { hint: question } }),
+    );
   };
 
   const busy = refreshing || loading;
@@ -247,11 +348,21 @@ export function OllieFunding({ refreshKey, refreshing = false }: { refreshKey: n
     <div className="flex h-full flex-col bg-background/40">
       <header className="flex items-center justify-between border-b border-border px-5 py-3">
         <p className="text-sm text-muted-foreground">
-          {view ? (count > 0 ? `${count} award${count === 1 ? "" : "s"} worth your time` : "Nothing assessed yet") : "Finding money for you"}
+          {view
+            ? count > 0
+              ? `${count} award${count === 1 ? "" : "s"} worth your time`
+              : "Nothing assessed yet"
+            : "Finding money for you"}
         </p>
         {busy && (
-          <span className="flex items-center gap-1.5 text-[11px] font-medium" style={{ color: WARM }}>
-            <span className="size-1.5 animate-pulse rounded-full" style={{ background: WARM }} />
+          <span
+            className="flex items-center gap-1.5 text-[11px] font-medium"
+            style={{ color: WARM }}
+          >
+            <span
+              className="size-1.5 animate-pulse rounded-full"
+              style={{ background: WARM }}
+            />
             updating
           </span>
         )}
@@ -259,7 +370,10 @@ export function OllieFunding({ refreshKey, refreshing = false }: { refreshKey: n
 
       <div className="flex-1 overflow-y-auto">
         {busy && view && (
-          <div className="mx-5 mt-4 rounded-xl px-3.5 py-2.5 text-sm font-medium" style={{ background: WARM_SOFT, color: WARM }}>
+          <div
+            className="mx-5 mt-4 rounded-xl px-3.5 py-2.5 text-sm font-medium"
+            style={{ background: WARM_SOFT, color: WARM }}
+          >
             Re-checking what you qualify for…
           </div>
         )}
@@ -267,7 +381,9 @@ export function OllieFunding({ refreshKey, refreshing = false }: { refreshKey: n
         {/* v3 funding hero: money feels FOUND, not begged for — and honest. */}
         {view?.ready && count > 0 && (view.totalUpTo ?? 0) > 0 && (
           <div className="mx-5 mt-4 rounded-2xl border border-gold/30 bg-gold/10 px-4 py-3">
-            <p className="text-[10px] font-black uppercase text-gold">Matched to you so far</p>
+            <p className="text-[10px] font-black uppercase text-gold">
+              Matched to you so far
+            </p>
             <p className="relative overflow-hidden text-2xl font-black tabular-nums text-foreground">
               <AnimatePresence mode="popLayout" initial={false}>
                 <motion.span
@@ -283,8 +399,8 @@ export function OllieFunding({ refreshKey, refreshing = false }: { refreshKey: n
               </AnimatePresence>
             </p>
             <p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">
-              Across {count} award{count === 1 ? "" : "s"} you may qualify for. Nothing is promised until it&apos;s
-              in writing.
+              Across {count} award{count === 1 ? " " : "s "} you may qualify
+              for. Nothing is promised until it&apos;s in writing.
             </p>
           </div>
         )}
@@ -299,10 +415,20 @@ export function OllieFunding({ refreshKey, refreshing = false }: { refreshKey: n
 
         <AnimatePresence>
           {count > 0 && (
-            <ul className={`transition-opacity duration-300 ${busy ? "opacity-40" : "opacity-100"}`}>
+            <ul
+              className={`transition-opacity duration-300 ${busy ? "opacity-40" : "opacity-100"}`}
+            >
               <AnimatePresence initial={false}>
                 {view!.awards.map((a, i) => (
-                  <Row key={a.id} award={a} index={i} onStatus={onStatus} onHide={onHide} onAnswer={onAnswer} busy={acting} />
+                  <Row
+                    key={a.id}
+                    award={a}
+                    index={i}
+                    onStatus={onStatus}
+                    onHide={onHide}
+                    onAnswer={onAnswer}
+                    busy={acting}
+                  />
                 ))}
               </AnimatePresence>
             </ul>
